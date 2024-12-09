@@ -7,6 +7,7 @@ import com.graduationproject.entities.User;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.PromoCodeRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.PromocodeService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.Random;
 @Data
 @Service
 @RequiredArgsConstructor
-public class PromocodeService {
+public class PromocodeServiceImpl implements PromocodeService {
 
     private final OrderRepository orderRepository;
 
