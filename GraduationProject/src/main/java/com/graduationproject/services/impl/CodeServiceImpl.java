@@ -5,6 +5,7 @@ import com.graduationproject.entities.OrderStatus;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.CodeService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Data
 @Service
 @RequiredArgsConstructor
-public class CodeService {
+public class CodeServiceImpl implements CodeService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
 

@@ -1,6 +1,6 @@
 package com.graduationproject.controllers;
 
-import com.graduationproject.services.impl.CodeService;
+import com.graduationproject.services.CodeService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
