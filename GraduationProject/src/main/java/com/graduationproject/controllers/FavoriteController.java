@@ -1,6 +1,6 @@
 package com.graduationproject.controllers;
 
-import com.graduationproject.services.impl.FavoriteService;
+import com.graduationproject.services.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;

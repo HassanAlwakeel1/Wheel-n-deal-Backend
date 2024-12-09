@@ -5,6 +5,7 @@ import com.graduationproject.entities.Favorite;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.FavoriteRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.FavoriteService;
 import com.graduationproject.services.UserProfileService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @Data
 @Service
 @RequiredArgsConstructor
-public class FavoriteService {
+public class FavoriteServiceImpl implements FavoriteService {
 
     private final UserRepository userRepository;
     private final FavoriteRepository favoriteRepository;
