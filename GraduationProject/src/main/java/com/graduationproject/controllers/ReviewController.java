@@ -1,7 +1,7 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.ReviewDTO;
-import com.graduationproject.services.impl.ReviewService;
+import com.graduationproject.services.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

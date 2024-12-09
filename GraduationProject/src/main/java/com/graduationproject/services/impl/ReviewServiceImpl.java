@@ -6,6 +6,7 @@ import com.graduationproject.entities.Role;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.ReviewRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.ReviewService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ import java.util.Optional;
 @Data
 @Service
 @RequiredArgsConstructor
-public class ReviewService {
+public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     public ResponseEntity<?> submitOrEditReview(ReviewDTO reviewDTO) {
