@@ -7,12 +7,16 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Quizapp" />
+        <module name="Backend-project" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Quizapp" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Backend-project" options="-parameters" />
       <module name="Quizapp" options="-parameters" />
     </option>
   </component>

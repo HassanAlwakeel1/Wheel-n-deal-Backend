@@ -9,10 +9,10 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>Quizapp</artifactId>
+	<artifactId>Backend-project</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Quizapp</name>
-	<description>Demo project for Spring Boot</description>
+	<name>Wheel-N-Deal</name>
+	<description>Back end for wheel-n-deal app</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
