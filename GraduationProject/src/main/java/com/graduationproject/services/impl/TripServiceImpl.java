@@ -8,6 +8,7 @@ import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.TripService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,7 +23,7 @@ import java.util.*;
 @Data
 @Service
 @RequiredArgsConstructor
-public class TripService {
+public class TripServiceImpl implements TripService{
 
     private final TripRepository tripRepository;
     private final UserRepository userRepository;

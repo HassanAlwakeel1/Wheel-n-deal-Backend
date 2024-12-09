@@ -1,7 +1,7 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.TripDTO;
-import com.graduationproject.services.impl.TripService;
+import com.graduationproject.services.TripService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
