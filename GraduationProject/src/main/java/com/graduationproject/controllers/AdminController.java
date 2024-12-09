@@ -1,7 +1,7 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.entities.Role;
-import com.graduationproject.services.impl.UserServiceImpl;
+import com.graduationproject.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/admin")
 public class AdminController {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @GetMapping("users")
     public ResponseEntity<?> findUsersByRole(@RequestParam Role role) {

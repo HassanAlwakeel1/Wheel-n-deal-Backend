@@ -1,10 +1,10 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.*;
+import com.graduationproject.services.UserService;
 import com.graduationproject.services.impl.CommuterProfileService;
 import com.graduationproject.services.impl.TripService;
 import com.graduationproject.services.impl.UserProfileService;
-import com.graduationproject.services.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserProfileService userProfileService;
-    private final UserServiceImpl userServiceImpl;
+    private final UserService userService;
     private final TripService tripService;
     private final CommuterProfileService commuterProfileService;
 
@@ -31,7 +31,7 @@ public class UserController {
 
     @DeleteMapping("delete")
     public ResponseEntity<String> deleteById(@RequestParam Integer id, @RequestParam String phoneNumber){
-        return userServiceImpl.deleteById(id, phoneNumber);
+        return userService.deleteById(id, phoneNumber);
     }
 
     @PostMapping("search-for-trip/{from}/{to}")
