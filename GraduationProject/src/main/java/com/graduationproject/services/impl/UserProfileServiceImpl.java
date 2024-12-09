@@ -5,6 +5,7 @@ import com.graduationproject.DTOs.NormalProfileDTO;
 import com.graduationproject.DTOs.UserProfileDTO;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.UserProfileService;
 import com.graduationproject.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserProfileService {
+public class UserProfileServiceImpl implements UserProfileService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

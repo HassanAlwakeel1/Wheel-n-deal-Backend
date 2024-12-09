@@ -5,6 +5,7 @@ import com.graduationproject.entities.Favorite;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.FavoriteRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.UserProfileService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
