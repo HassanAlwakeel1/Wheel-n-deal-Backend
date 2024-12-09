@@ -3,6 +3,7 @@ package com.graduationproject.services.impl;
 import com.graduationproject.DTOs.*;
 import com.graduationproject.entities.*;
 import com.graduationproject.repositories.*;
+import com.graduationproject.services.OrderService;
 import com.graduationproject.services.PromocodeService;
 import com.graduationproject.utils.Utils;
 import lombok.Data;
@@ -20,7 +21,7 @@ import java.util.Optional;
 @Data
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final OrderApplicantsRepository orderApplicantsRepository;
