@@ -1,10 +1,10 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.*;
+import com.graduationproject.services.CommuterProfileService;
 import com.graduationproject.services.TripService;
 import com.graduationproject.services.UserProfileService;
 import com.graduationproject.services.UserService;
-import com.graduationproject.services.impl.CommuterProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

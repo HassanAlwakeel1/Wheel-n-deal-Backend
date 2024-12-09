@@ -10,6 +10,7 @@ import com.graduationproject.entities.User;
 import com.graduationproject.repositories.ReviewRepository;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.CommuterProfileService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ import java.util.Optional;
 @Data
 @Service
 @RequiredArgsConstructor
-public class CommuterProfileService {
+public class CommuterProfileServiceImpl implements CommuterProfileService {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
