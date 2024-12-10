@@ -11,6 +11,7 @@ import com.graduationproject.entities.PaymobResponse;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.PaymobResponseRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.PaymobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 @Service
-public class PaymobServiceImpl {
+public class PaymobServiceImpl implements PaymobService {
     @Autowired
     private PaymobResponseRepository paymobResponseRepository;
     @Autowired
@@ -97,7 +98,7 @@ public class PaymobServiceImpl {
     public void savePayResponse(PayResponseDTO payResponse) {
         PaymobResponse responseEntity = new PaymobResponse();
         responseEntity.setExternalId(payResponse.getId());
-        responseEntity.setPending(payResponse.isPending());
+        responseEntity.setPending(payResponse.getPending());
         responseEntity.setAmountCents(Math.toIntExact(payResponse.getAmount_cents()));
         responseEntity.setCurrency(payResponse.getCurrency());
 
