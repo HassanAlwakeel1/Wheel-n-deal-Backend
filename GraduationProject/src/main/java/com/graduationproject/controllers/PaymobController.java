@@ -2,8 +2,7 @@ package com.graduationproject.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.graduationproject.DTOs.paymobPaymentDTOs.*;
-import com.graduationproject.services.impl.PaymobService;
-import com.graduationproject.services.impl.PaymobServiceImpl;
+import com.graduationproject.services.PaymobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
