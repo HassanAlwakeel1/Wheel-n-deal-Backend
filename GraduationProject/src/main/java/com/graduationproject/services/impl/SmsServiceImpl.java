@@ -6,6 +6,7 @@ import com.graduationproject.DTOs.optDTOs.OtpValidationRequest;
 import com.graduationproject.configuration.TwilioConfiguration;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.SmsService;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.Random;
 
 @Slf4j
 @Service
-public class SmsServiceImpl {
+public class SmsServiceImpl implements SmsService {
 
     @Autowired
     private UserRepository userRepository;

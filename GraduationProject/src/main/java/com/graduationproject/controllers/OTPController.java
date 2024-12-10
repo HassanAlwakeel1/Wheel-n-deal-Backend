@@ -1,7 +1,7 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.optDTOs.OtpValidationRequest;
-import com.graduationproject.services.impl.SmsServiceImpl;
+import com.graduationproject.services.SmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class OTPController {
 
     @Autowired
-    private SmsServiceImpl smsService;
+    private SmsService smsService;
 
     @PostMapping("send-otp")
     public ResponseEntity<Object> sendOtp(@RequestParam String phoneNumber) {
