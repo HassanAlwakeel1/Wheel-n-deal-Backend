@@ -8,7 +8,7 @@ import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
-import com.graduationproject.services.OrderService;
+import com.graduationproject.services.OrderManagementService;
 import com.graduationproject.services.TripService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class TripServiceImpl implements TripService{
 
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
-    private final OrderService orderService;
+    private final OrderManagementService orderManagementService;
 
     public ResponseEntity<Object> postOrUpdateTrip(TripDTO tripDTO) {
         if (!isCommuter()) {
@@ -285,7 +285,7 @@ public class TripServiceImpl implements TripService{
             if (trip.getOrders() != null) {
                 List<Order> orderList = trip.getOrders();
                 for (Order order : orderList) {
-                    orderService.cancelOrder(order.getId(), commuterId);
+                    orderManagementService.cancelOrder(order.getId(), commuterId);
                 }
             }
 
