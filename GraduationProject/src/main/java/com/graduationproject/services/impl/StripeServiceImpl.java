@@ -5,6 +5,7 @@ import com.graduationproject.entities.StripePaymentEntity;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.StripePaymentRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.StripeService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class StripeServiceImpl {
+public class StripeServiceImpl implements StripeService {
 
     @Autowired
     private StripePaymentRepository paymentRepository;
