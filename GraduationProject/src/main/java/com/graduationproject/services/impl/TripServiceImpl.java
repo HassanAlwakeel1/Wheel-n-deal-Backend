@@ -8,6 +8,7 @@ import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
+import com.graduationproject.services.OrderService;
 import com.graduationproject.services.TripService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

@@ -2,6 +2,7 @@ package com.graduationproject.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.graduationproject.DTOs.paymobPaymentDTOs.*;
+import com.graduationproject.services.impl.PaymobService;
 import com.graduationproject.services.impl.PaymobServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class PaymobController {
 
     @Autowired
-    private PaymobServiceImpl paymobService;
+    private PaymobService paymobService;
 
     @PostMapping("EWalletCharge")
     public ResponseEntity<Map<String, Object>> EWalletCharge(@RequestBody PayRequestDTO request) throws JsonProcessingException {
