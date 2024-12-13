@@ -1,4 +1,4 @@
-package com.graduationproject.services.impl;
+package com.graduationproject.servicesImpl;
 
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;

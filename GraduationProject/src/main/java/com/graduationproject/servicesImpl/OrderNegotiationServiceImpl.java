@@ -1,4 +1,4 @@
-package com.graduationproject.services.impl;
+package com.graduationproject.servicesImpl;
 
 import com.graduationproject.DTOs.NegotiationDTO;
 import com.graduationproject.entities.Order;

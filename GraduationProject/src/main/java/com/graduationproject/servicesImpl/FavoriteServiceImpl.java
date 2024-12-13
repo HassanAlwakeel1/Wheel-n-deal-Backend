@@ -1,4 +1,4 @@
-package com.graduationproject.services.impl;
+package com.graduationproject.servicesImpl;
 
 import com.graduationproject.DTOs.NormalProfileDTO;
 import com.graduationproject.entities.Favorite;
