@@ -1,0 +1,538 @@
+Index: GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject.servicesImpl;\r\n\r\nimport com.graduationproject.DTOs.SearchOrderDTO;\r\nimport com.graduationproject.entities.Order;\r\nimport com.graduationproject.entities.User;\r\nimport com.graduationproject.repositories.OrderRepository;\r\nimport com.graduationproject.repositories.UserRepository;\r\nimport com.graduationproject.services.OrderSearchService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.Optional;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class OrderSearchServiceImpl implements OrderSearchService {\r\n\r\n    private final OrderRepository orderRepository;\r\n    private final UserRepository userRepository;\r\n\r\n    @Override\r\n    public ResponseEntity<Object> searchForOrder(String from, String to) {\r\n        if (from == null || to == null) {\r\n            return ResponseEntity.badRequest().body(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(),\r\n                            \"message\", \"Origin and destination must not be null.\")\r\n            );\r\n        }\r\n\r\n        try {\r\n            List<SearchOrderDTO> searchOrderDTOS = new ArrayList<>();\r\n            List<Order> existingOrders = orderRepository.findByFromAndTo(from, to);\r\n\r\n            if (existingOrders == null || existingOrders.isEmpty()) {\r\n                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(\r\n                        Map.of(\"status\", HttpStatus.NOT_FOUND.value(),\r\n                                \"message\", \"No orders found between \" + from + \" and \" + to + \".\")\r\n                );\r\n            }\r\n\r\n            for (Order order : existingOrders) {\r\n                SearchOrderDTO searchOrderDTO = new SearchOrderDTO();\r\n                ResponseEntity<Object> response = updateSearchOrderDTOFromOrder(searchOrderDTO, order);\r\n\r\n                if (response.getStatusCode() != HttpStatus.OK) {\r\n                    return response;\r\n                }\r\n\r\n                Map<String, Object> responseBody = (Map<String, Object>) response.getBody();\r\n                SearchOrderDTO updatedSearchOrderDTO = (SearchOrderDTO) responseBody.get(\"data\");\r\n                searchOrderDTOS.add(updatedSearchOrderDTO);\r\n            }\r\n\r\n            return ResponseEntity.ok(\r\n                    Map.of(\"status\", HttpStatus.OK.value(),\r\n                            \"message\", \"Search results successfully retrieved.\",\r\n                            \"data\", searchOrderDTOS)\r\n            );\r\n\r\n        } catch (Exception ex) {\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(\r\n                    Map.of(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(),\r\n                            \"message\", \"An error occurred during the search.\",\r\n                            \"data\", ex.getMessage())\r\n            );\r\n        }\r\n    }\r\n\r\n    @Override\r\n    public ResponseEntity<?> findAllByUserId(Integer userId) {\r\n        if (userId == null || userId <= 0) {\r\n            return ResponseEntity.badRequest().body(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(),\r\n                            \"message\", \"Invalid user ID. User ID must be a positive integer.\")\r\n            );\r\n        }\r\n\r\n        List<Order> orders = orderRepository.findAllByUserId(userId);\r\n\r\n        if (orders.isEmpty()) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(\r\n                    Map.of(\"status\", HttpStatus.NOT_FOUND.value(),\r\n                            \"message\", \"No orders found for the user.\")\r\n            );\r\n        }\r\n\r\n        return ResponseEntity.ok(\r\n                Map.of(\"status\", HttpStatus.OK.value(),\r\n                        \"message\", \"Orders found.\",\r\n                        \"data\", orders)\r\n        );\r\n    }\r\n\r\n    @Override\r\n    public ResponseEntity<Object> findNotActiveOrders(Integer userId) {\r\n        if (userId == null || userId <= 0) {\r\n            return ResponseEntity.badRequest().body(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(),\r\n                            \"message\", \"Invalid userId provided.\")\r\n            );\r\n        }\r\n\r\n        List<Order> orders = orderRepository.findNotActiveOrders(userId);\r\n\r\n        if (orders == null || orders.isEmpty()) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(\r\n                    Map.of(\"status\", HttpStatus.NOT_FOUND.value(),\r\n                            \"message\", \"No not active orders found for the user.\")\r\n            );\r\n        }\r\n\r\n        return ResponseEntity.ok(\r\n                Map.of(\"status\", HttpStatus.OK.value(),\r\n                        \"message\", \"Not active orders found.\",\r\n                        \"data\", orders)\r\n        );\r\n    }\r\n\r\n\r\n    @Override\r\n    public ResponseEntity<?> findById(Integer orderId) {\r\n        if (orderId == null || orderId <= 0) {\r\n            return ResponseEntity.badRequest().body(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(),\r\n                            \"message\", \"Invalid order ID. Order ID must be a positive integer.\")\r\n            );\r\n        }\r\n\r\n        Optional<Order> optionalOrder = orderRepository.findById(orderId);\r\n        if (optionalOrder.isEmpty()) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(\r\n                    Map.of(\"status\", HttpStatus.NOT_FOUND.value(),\r\n                            \"message\", \"Order not found.\")\r\n            );\r\n        }\r\n\r\n        Order order = optionalOrder.get();\r\n        return ResponseEntity.ok(\r\n                Map.of(\"status\", HttpStatus.OK.value(),\r\n                        \"message\", \"Order found.\",\r\n                        \"data\", order)\r\n        );\r\n    }\r\n    @Override\r\n    public ResponseEntity<?> findCommuterOrders(Integer commuterId) {\r\n        if (commuterId == null || commuterId <= 0) {\r\n            return ResponseEntity.badRequest().body(\r\n                    Map.of(\r\n                            \"status\", HttpStatus.BAD_REQUEST.value(),\r\n                            \"message\", \"Invalid commuter ID\"\r\n                    )\r\n            );\r\n        }\r\n\r\n        Optional<User> optionalCommuter = userRepository.findById(commuterId);\r\n        if (!optionalCommuter.isPresent()) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(\r\n                    Map.of(\r\n                            \"status\", HttpStatus.NOT_FOUND.value(),\r\n                            \"message\", \"Commuter ID not found\"\r\n                    )\r\n            );\r\n        }\r\n\r\n        List<Order> orderList = orderRepository.findCommuterOrders(commuterId);\r\n        if (orderList.isEmpty()) {\r\n            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(\r\n                    Map.of(\r\n                            \"status\", HttpStatus.NO_CONTENT.value(),\r\n                            \"message\", \"No orders found for this commuter\"\r\n                    )\r\n            );\r\n        }\r\n\r\n        return ResponseEntity.ok(\r\n                Map.of(\r\n                        \"status\", HttpStatus.OK.value(),\r\n                        \"message\", \"Orders retrieved successfully\",\r\n                        \"data\", orderList\r\n                )\r\n        );\r\n    }\r\n\r\n    // Helper Method\r\n    private ResponseEntity<Object> updateSearchOrderDTOFromOrder(SearchOrderDTO searchOrderDTO, Order order) {\r\n        if (searchOrderDTO == null || order == null) {\r\n            return new ResponseEntity<>(Map.of(\r\n                    \"status\", HttpStatus.BAD_REQUEST.value(),\r\n                    \"message\", \"SearchOrderDTO or Order is null.\"\r\n            ), HttpStatus.BAD_REQUEST);\r\n        }\r\n\r\n        try {\r\n            if (order.getUser() == null || order.getUser().getId() == null) {\r\n                return new ResponseEntity<>(Map.of(\r\n                        \"status\", HttpStatus.UNPROCESSABLE_ENTITY.value(),\r\n                        \"message\", \"User information is missing in Order.\"\r\n                ), HttpStatus.UNPROCESSABLE_ENTITY);\r\n            }\r\n\r\n            searchOrderDTO.setId(order.getId());\r\n            searchOrderDTO.setOrderName(order.getOrderName());\r\n            searchOrderDTO.setUserId(order.getUser().getId());\r\n            searchOrderDTO.setCountOfOrders(order.getCountOfOrders());\r\n            searchOrderDTO.setWeight(order.getWeight());\r\n            searchOrderDTO.setBreakable(order.isBreakable());\r\n            searchOrderDTO.setExpiryDate(order.getExpiryDate());\r\n            searchOrderDTO.setExpectedPrice(order.getExpectedPrice());\r\n            searchOrderDTO.setOrderPhotoURL(order.getOrderPhotoUrl());\r\n            searchOrderDTO.setFrom(order.getFrom());\r\n            searchOrderDTO.setTo(order.getTo());\r\n            searchOrderDTO.setSenderName(order.getSenderName());\r\n            searchOrderDTO.setSenderPhoneNumber(order.getSenderPhoneNumber());\r\n            searchOrderDTO.setReceiverName(order.getReceiverName());\r\n            searchOrderDTO.setReceiverPhoneNumber(order.getReceiverPhoneNumber());\r\n\r\n            return new ResponseEntity<>(Map.of(\r\n                    \"status\", HttpStatus.OK.value(),\r\n                    \"message\", \"SearchOrderDTO updated successfully.\",\r\n                    \"data\", searchOrderDTO\r\n            ), HttpStatus.OK);\r\n\r\n        } catch (Exception ex) {\r\n            return new ResponseEntity<>(Map.of(\r\n                    \"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(),\r\n                    \"message\", \"An error occurred while updating SearchOrderDTO.\",\r\n                    \"data\", ex.getMessage()\r\n            ), HttpStatus.INTERNAL_SERVER_ERROR);\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java
+--- a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java	(date 1734462796454)
+@@ -3,6 +3,7 @@
+ import com.graduationproject.DTOs.SearchOrderDTO;
+ import com.graduationproject.entities.Order;
+ import com.graduationproject.entities.User;
++import com.graduationproject.mapper.OrderMapper;
+ import com.graduationproject.repositories.OrderRepository;
+ import com.graduationproject.repositories.UserRepository;
+ import com.graduationproject.services.OrderSearchService;
+@@ -15,6 +16,7 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Optional;
++import java.util.stream.Collectors;
+ 
+ @Service
+ @RequiredArgsConstructor
+@@ -22,6 +24,7 @@
+ 
+     private final OrderRepository orderRepository;
+     private final UserRepository userRepository;
++    private final OrderMapper orderMapper;
+ 
+     @Override
+     public ResponseEntity<Object> searchForOrder(String from, String to) {
+@@ -33,33 +36,25 @@
+         }
+ 
+         try {
+-            List<SearchOrderDTO> searchOrderDTOS = new ArrayList<>();
+-            List<Order> existingOrders = orderRepository.findByFromAndTo(from, to);
++            //List<SearchOrderDTO> searchOrderDTOS = new ArrayList<>();
++            List<Order> orders = orderRepository.findByFromAndTo(from, to);
+ 
+-            if (existingOrders == null || existingOrders.isEmpty()) {
++            if (orders == null || orders.isEmpty()) {
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                         Map.of("status", HttpStatus.NOT_FOUND.value(),
+                                 "message", "No orders found between " + from + " and " + to + ".")
+                 );
+             }
+ 
+-            for (Order order : existingOrders) {
+-                SearchOrderDTO searchOrderDTO = new SearchOrderDTO();
+-                ResponseEntity<Object> response = updateSearchOrderDTOFromOrder(searchOrderDTO, order);
+-
+-                if (response.getStatusCode() != HttpStatus.OK) {
+-                    return response;
+-                }
+-
+-                Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+-                SearchOrderDTO updatedSearchOrderDTO = (SearchOrderDTO) responseBody.get("data");
+-                searchOrderDTOS.add(updatedSearchOrderDTO);
+-            }
++            // Map Orders to SearchOrderDTO using OrderMapper
++            List<SearchOrderDTO> searchOrderDTOs = orders.stream()
++                    .map(orderMapper::orderToSearchOrderDTO)
++                    .collect(Collectors.toList());
+ 
+             return ResponseEntity.ok(
+                     Map.of("status", HttpStatus.OK.value(),
+                             "message", "Search results successfully retrieved.",
+-                            "data", searchOrderDTOS)
++                            "data", searchOrderDTOs)
+             );
+ 
+         } catch (Exception ex) {
+Index: GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject.servicesImpl;\r\n\r\nimport com.graduationproject.DTOs.ReviewDTO;\r\nimport com.graduationproject.entities.Review;\r\nimport com.graduationproject.entities.Role;\r\nimport com.graduationproject.entities.User;\r\nimport com.graduationproject.repositories.ReviewRepository;\r\nimport com.graduationproject.repositories.UserRepository;\r\nimport com.graduationproject.services.ReviewService;\r\nimport lombok.Data;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.Optional;\r\n\r\n@Data\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class ReviewServiceImpl implements ReviewService {\r\n    private final ReviewRepository reviewRepository;\r\n    private final UserRepository userRepository;\r\n    public ResponseEntity<?> submitOrEditReview(ReviewDTO reviewDTO) {\r\n        if (reviewDTO == null) {\r\n            return ResponseEntity.badRequest().body(Map.of(\"message\", \"Review data cannot be null.\"));\r\n        }\r\n\r\n        String comment = reviewDTO.getComment();\r\n        if (comment == null || comment.trim().isEmpty()) {\r\n            return ResponseEntity.badRequest().body(Map.of(\"message\", \"Review comment cannot be empty.\"));\r\n        }\r\n\r\n        List<String> VERY_BAD_WORDS = Arrays.asList(\"fuck\", \"2g1c\", \"2 girls 1 cup\", \"acrotomophilia\", \"alabama hot pocket\", \"alaskan pipeline\",\r\n                \"anilingus\", \"anus\", \"apeshit\", \"arsehole\", \"ass\", \"asshole\", \"assmunch\",\r\n                \"auto erotic\", \"autoerotic\", \"babeland\", \"baby batter\", \"baby juice\", \"ball gag\",\r\n                \"ball gravy\", \"ball kicking\", \"ball licking\", \"ball sack\", \"ball sucking\", \"bangbros\",\r\n                \"bangbus\", \"bareback\", \"barely legal\", \"barenaked\", \"bastard\", \"bastardo\", \"bastinado\",\r\n                \"bbw\", \"bdsm\", \"beaner\", \"beaners\", \"beaver cleaver\", \"beaver lips\", \"beastiality\",\r\n                \"bestiality\", \"big black\", \"big breasts\", \"big knockers\", \"big tits\", \"bimbos\",\r\n                \"birdlock\", \"bitch\", \"bitches\", \"black cock\", \"blonde action\", \"blonde on blonde action\",\r\n                \"blowjob\", \"blow job\", \"blow your load\", \"blue waffle\", \"blumpkin\", \"bollocks\",\r\n                \"bondage\", \"boner\", \"boob\", \"boobs\", \"booty call\", \"brown showers\", \"brunette action\",\r\n                \"bukkake\", \"bulldyke\", \"bullet vibe\", \"bullshit\", \"bung hole\", \"bunghole\", \"busty\",\r\n                \"butt\", \"buttcheeks\", \"butthole\", \"camel toe\", \"camgirl\", \"camslut\", \"camwhore\",\r\n                \"carpet muncher\", \"carpetmuncher\", \"chocolate rosebuds\", \"cialis\", \"circlejerk\",\r\n                \"cleveland steamer\", \"clit\", \"clitoris\", \"clover clamps\", \"clusterfuck\", \"cock\",\r\n                \"cocks\", \"coprolagnia\", \"coprophilia\", \"cornhole\", \"coon\", \"coons\", \"creampie\",\r\n                \"cum\", \"cumming\", \"cumshot\", \"cumshots\", \"cunnilingus\", \"cunt\", \"darkie\", \"date rape\",\r\n                \"daterape\", \"deep throat\", \"deepthroat\", \"dendrophilia\", \"dick\", \"dildo\", \"dingleberry\",\r\n                \"dingleberries\", \"dirty pillows\", \"dirty sanchez\", \"doggie style\", \"doggiestyle\",\r\n                \"doggy style\", \"doggystyle\", \"dog style\", \"dolcett\", \"domination\", \"dominatrix\", \"dommes\",\r\n                \"donkey punch\", \"double dong\", \"double penetration\", \"dp action\", \"dry hump\", \"dvda\",\r\n                \"eat my ass\", \"ecchi\", \"ejaculation\", \"erotic\", \"erotism\", \"escort\", \"eunuch\", \"fag\",\r\n                \"faggot\", \"fecal\", \"felch\", \"fellatio\", \"feltch\", \"female squirting\", \"femdom\", \"figging\",\r\n                \"fingerbang\", \"fingering\", \"fisting\", \"foot fetish\", \"footjob\", \"frotting\", \"fuck\",\r\n                \"fuck buttons\", \"fuckin\", \"fucking\", \"fucktards\", \"fudge packer\", \"fudgepacker\",\r\n                \"futanari\", \"gangbang\", \"gang bang\", \"gay sex\", \"genitals\", \"giant cock\", \"girl on\",\r\n                \"girl on top\", \"girls gone wild\", \"goatcx\", \"goatse\", \"god damn\", \"gokkun\", \"golden shower\",\r\n                \"goodpoop\", \"goo girl\", \"goregasm\", \"grope\", \"group sex\", \"g-spot\", \"guro\", \"hand job\",\r\n                \"handjob\", \"hard core\", \"hardcore\", \"hentai\", \"homoerotic\", \"honkey\", \"hooker\", \"horny\",\r\n                \"hot carl\", \"hot chick\", \"how to kill\", \"how to murder\", \"huge fat\", \"humping\", \"incest\",\r\n                \"intercourse\", \"jack off\", \"jail bait\", \"jailbait\", \"anal\", \"jelly donut\", \"jerk off\", \"jigaboo\",\r\n                \"jiggaboo\", \"jiggerboo\", \"jizz\", \"juggs\", \"kike\", \"kinbaku\", \"kinkster\", \"kinky\", \"knobbing\",\r\n                \"leather restraint\", \"leather straight jacket\", \"lemon party\", \"livesex\", \"lolita\",\r\n                \"lovemaking\", \"make me come\", \"male squirting\", \"masturbate\", \"masturbating\", \"masturbation\",\r\n                \"menage a trois\", \"milf\", \"missionary position\", \"mong\", \"motherfucker\", \"mound of venus\",\r\n                \"mr hands\", \"muff diver\", \"muffdiving\", \"nambla\", \"nawashi\", \"negro\", \"neonazi\", \"nigga\",\r\n                \"nigger\", \"nig nog\", \"nimphomania\", \"nipple\", \"nipples\", \"nsfw\", \"nsfw images\", \"nude\",\r\n                \"nudity\", \"nutten\");\r\n\r\n        if (containsVeryBadWords(comment, VERY_BAD_WORDS)) {\r\n            return ResponseEntity.badRequest()\r\n                    .body(Map.of(\"message\", \"Your review contains inappropriate language. Please revise.\"));\r\n        }\r\n\r\n        Integer reviewerId = reviewDTO.getReviewerId();\r\n        Integer revieweeId = reviewDTO.getRevieweeId();\r\n        if (reviewerId == null || reviewerId <= 0) {\r\n            return ResponseEntity.badRequest().body(Map.of(\"message\", \"Invalid reviewer ID.\"));\r\n        }\r\n        if (revieweeId == null || revieweeId <= 0) {\r\n            return ResponseEntity.badRequest().body(Map.of(\"message\", \"Invalid reviewee ID.\"));\r\n        }\r\n\r\n        if (IsReviewerReviewedBefore(reviewerId, revieweeId)) {\r\n            return ResponseEntity.badRequest()\r\n                    .body(Map.of(\"message\", \"You have already made a review for this commuter before.\"));\r\n        }\r\n\r\n        Integer reviewId = reviewDTO.getId();\r\n        if (reviewId != null) {\r\n            Optional<Review> optionalReview = reviewRepository.findById(reviewId);\r\n            if (optionalReview.isPresent()) {\r\n                Review review = optionalReview.get();\r\n                updateReviewFromDTO(review, reviewDTO);\r\n                reviewRepository.save(review);\r\n                return ResponseEntity.ok(Map.of(\"message\", \"Review updated successfully.\"));\r\n            } else {\r\n                return ResponseEntity.status(HttpStatus.NOT_FOUND)\r\n                        .body(Map.of(\"message\", \"Review not found with ID: \" + reviewId));\r\n            }\r\n        }\r\n\r\n        submitReviewFromDTO(reviewDTO);\r\n        return ResponseEntity.ok(Map.of(\"message\", \"Review submitted successfully.\"));\r\n    }\r\n    private boolean IsReviewerReviewedBefore(Integer reviewerId, Integer revieweeId) {\r\n        Review review = reviewRepository.findByReviewerIdAndRevieweeId(reviewerId, revieweeId);\r\n        return review != null;\r\n    }\r\n    private boolean containsVeryBadWords(String comment, List<String> veryBadWords) {\r\n        for (String badWord : veryBadWords) {\r\n            if (comment.toLowerCase().contains(badWord)) {\r\n                return true;\r\n            }\r\n        }\r\n        return false;\r\n    }\r\n    public ResponseEntity<?> deleteReview(int reviewId) {\r\n        if (reviewId <= 0) {\r\n            return ResponseEntity.badRequest().body(Map.of(\"message\", \"Invalid review ID.\"));\r\n        }\r\n\r\n        try {\r\n            if (!reviewRepository.existsById(reviewId)) {\r\n                return ResponseEntity.status(HttpStatus.NOT_FOUND)\r\n                        .body(Map.of(\"message\", \"Review not found with ID: \" + reviewId));\r\n            }\r\n\r\n            reviewRepository.deleteById(reviewId);\r\n            return ResponseEntity.ok(Map.of(\"message\", \"Review deleted successfully.\"));\r\n        } catch (Exception e) {\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)\r\n                    .body(Map.of(\"message\", \"An error occurred while trying to delete the review.\",\r\n                            \"details\", e.getMessage()));\r\n        }\r\n    }\r\n    private Review submitReviewFromDTO(ReviewDTO reviewDTO) {\r\n        Optional<User> optioanlReviewer = userRepository.findById(reviewDTO.getReviewerId());\r\n        Optional<User> optioanlReviewee = userRepository.findById(reviewDTO.getRevieweeId());\r\n\r\n        if (optioanlReviewer.isEmpty()) {\r\n            throw new RuntimeException(\"User not found with ID: \" + reviewDTO.getReviewerId());\r\n        } else if (optioanlReviewee.isEmpty()) {\r\n            throw new RuntimeException(\"User not found with ID: \" + reviewDTO.getRevieweeId());\r\n        }\r\n\r\n        Review review = new Review();\r\n        updateReviewFromDTO(review, reviewDTO);\r\n\r\n        User reviewer = optioanlReviewer.get();\r\n        User reviewee = optioanlReviewee.get();\r\n        review.setReviewer(reviewer);\r\n        review.setReviewee(reviewee);\r\n\r\n        if (reviewee.getRole() == Role.COMMUTER) {\r\n            return reviewRepository.save(review);\r\n        } else throw new RuntimeException(\"Reviewee must be Commuter to submit the review\");\r\n    }\r\n    private void updateReviewFromDTO(Review review, ReviewDTO reviewDTO) {\r\n        review.setRate(reviewDTO.getRate());\r\n        review.setComment(reviewDTO.getComment());\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java
+--- a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java	(date 1734403338840)
+@@ -4,6 +4,7 @@
+ import com.graduationproject.entities.Review;
+ import com.graduationproject.entities.Role;
+ import com.graduationproject.entities.User;
++import com.graduationproject.mapper.ReviewMapper;
+ import com.graduationproject.repositories.ReviewRepository;
+ import com.graduationproject.repositories.UserRepository;
+ import com.graduationproject.services.ReviewService;
+@@ -24,6 +25,7 @@
+ public class ReviewServiceImpl implements ReviewService {
+     private final ReviewRepository reviewRepository;
+     private final UserRepository userRepository;
++    private final ReviewMapper reviewMapper;
+     public ResponseEntity<?> submitOrEditReview(ReviewDTO reviewDTO) {
+         if (reviewDTO == null) {
+             return ResponseEntity.badRequest().body(Map.of("message", "Review data cannot be null."));
+@@ -86,7 +88,7 @@
+             return ResponseEntity.badRequest().body(Map.of("message", "Invalid reviewee ID."));
+         }
+ 
+-        if (IsReviewerReviewedBefore(reviewerId, revieweeId)) {
++        if (hasReviewerAlreadyReviewed(reviewerId, revieweeId)) {
+             return ResponseEntity.badRequest()
+                     .body(Map.of("message", "You have already made a review for this commuter before."));
+         }
+@@ -108,7 +110,7 @@
+         submitReviewFromDTO(reviewDTO);
+         return ResponseEntity.ok(Map.of("message", "Review submitted successfully."));
+     }
+-    private boolean IsReviewerReviewedBefore(Integer reviewerId, Integer revieweeId) {
++    private boolean hasReviewerAlreadyReviewed(Integer reviewerId, Integer revieweeId) {
+         Review review = reviewRepository.findByReviewerIdAndRevieweeId(reviewerId, revieweeId);
+         return review != null;
+     }
+@@ -149,8 +151,7 @@
+             throw new RuntimeException("User not found with ID: " + reviewDTO.getRevieweeId());
+         }
+ 
+-        Review review = new Review();
+-        updateReviewFromDTO(review, reviewDTO);
++        Review review = reviewMapper.toEntity(reviewDTO);
+ 
+         User reviewer = optioanlReviewer.get();
+         User reviewee = optioanlReviewee.get();
+@@ -162,7 +163,6 @@
+         } else throw new RuntimeException("Reviewee must be Commuter to submit the review");
+     }
+     private void updateReviewFromDTO(Review review, ReviewDTO reviewDTO) {
+-        review.setRate(reviewDTO.getRate());
+-        review.setComment(reviewDTO.getComment());
++        reviewMapper.updateReviewFromDTO(review,reviewDTO);
+     }
+ }
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"4e76c4c6-e973-4de6-884f-b5e880c0542b\" name=\"Changes\" comment=\"add Redis Configuration\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserDTO.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserDTO.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderCreationServiceImpl.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderCreationServiceImpl.java\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"CodeStyleSettingsInfer\">\r\n    <option name=\"done\" value=\"true\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Enum\" />\r\n        <option value=\"Interface\" />\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"backend_new\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n    <option name=\"ROOT_SYNC\" value=\"DONT_SYNC\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;nouranhossamm&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">\r\n    <option name=\"selectedUrlAndAccountId\">\r\n      <UrlAndAccount>\r\n        <option name=\"accountId\" value=\"4a16c384-0eb2-40f8-aedb-770854f1fcb3\" />\r\n        <option name=\"url\" value=\"https://github.com/OmarAmeer96/Wheel-n-Deal.git\" />\r\n      </UrlAndAccount>\r\n    </option>\r\n  </component>\r\n  <component name=\"MarkdownSettingsMigration\">\r\n    <option name=\"stateVersion\" value=\"1\" />\r\n  </component>\r\n  <component name=\"ProblemsViewState\">\r\n    <option name=\"selectedTabId\" value=\"CurrentFile\" />\r\n  </component>\r\n  <component name=\"ProjectCodeStyleSettingsMigration\">\r\n    <option name=\"version\" value=\"2\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 3\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2ZXllvNxFlYa4nBUefpwSxfgdSt\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"ASKED_SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\r\n    \"Application.GraduationProject.executor\": \"Run\",\r\n    \"Maven..executor\": \"Run\",\r\n    \"Maven.Quizapp [install].executor\": \"Run\",\r\n    \"Maven.Unnamed.executor\": \"Run\",\r\n    \"RequestMappingsPanelOrder0\": \"0\",\r\n    \"RequestMappingsPanelOrder1\": \"1\",\r\n    \"RequestMappingsPanelWidth0\": \"75\",\r\n    \"RequestMappingsPanelWidth1\": \"75\",\r\n    \"RunOnceActivity.OpenProjectViewOnStart\": \"true\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\r\n    \"Spring Boot.GraduationProject.executor\": \"Run\",\r\n    \"git-widget-placeholder\": \"main\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"D:/Workspace/Work/Wheel-n-Deal-Backend\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"project.structure.last.edited\": \"Modules\",\r\n    \"project.structure.proportion\": \"0.15\",\r\n    \"project.structure.side.proportion\": \"0.2\",\r\n    \"settings.editor.selected.configurable\": \"reactor\",\r\n    \"two.files.diff.last.used.folder\": \"C:/Users/noora/IdeaProjects/Wheel-n-Deal\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  }\r\n}]]></component>\r\n  <component name=\"ReactorSettings\">\r\n    <option name=\"notificationShown\" value=\"true\" />\r\n  </component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CreateClassDialog.RecentsKey\">\r\n      <recent name=\"com.graduationproject.entities\" />\r\n      <recent name=\"com.graduationproject.DTOs\" />\r\n    </key>\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\noora\\IdeaProjects\\Wheel-n-Deal\\GraduationProject\\src\\main\\java\\com\\graduationproject\\DTOs\\paymobPaymentDTOs\" />\r\n      <recent name=\"C:\\Users\\noora\\IdeaProjects\\Wheel-n-Deal\\GraduationProject\\src\\main\\java\\com\\graduationproject\\DTOs\\stripePaymentDTOs\" />\r\n      <recent name=\"C:\\Users\\noora\\IdeaProjects\\Wheel-n-Deal\" />\r\n    </key>\r\n    <key name=\"CopyClassDialog.RECENTS_KEY\">\r\n      <recent name=\"com.graduationproject.services.impl\" />\r\n      <recent name=\"com.graduationproject.controllers\" />\r\n      <recent name=\"com.graduationproject.entities\" />\r\n      <recent name=\"com.graduationproject.repositories\" />\r\n      <recent name=\"com.graduationproject.DTOs\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunAnythingCache\">\r\n    <myKeys>\r\n      <visibility group=\"Gradle Tasks\" flag=\"true\" />\r\n      <visibility group=\"Maven Goals\" flag=\"true\" />\r\n      <visibility group=\"Recent projects\" flag=\"true\" />\r\n      <visibility group=\"Run configurations\" flag=\"true\" />\r\n      <visibility group=\"com.intellij.ide.actions.runAnything.RunAnythingRunConfigurationProvider\" flag=\"true\" />\r\n      <visibility group=\"com.intellij.ide.actions.runAnything.activity.RunAnythingRecentProjectProvider\" flag=\"true\" />\r\n      <visibility group=\"org.jetbrains.idea.maven.execution.MavenRunAnythingProvider\" flag=\"true\" />\r\n      <visibility group=\"org.jetbrains.plugins.gradle.execution.GradleRunAnythingProvider\" flag=\"true\" />\r\n      <visibility group=\"sbt\" flag=\"true\" />\r\n    </myKeys>\r\n    <option name=\"myCommands\">\r\n      <command value=\"mvn\" />\r\n    </option>\r\n  </component>\r\n  <component name=\"RunAnythingContextRecentDirectoryCache\">\r\n    <option name=\"paths\">\r\n      <recentPaths value=\"$PROJECT_DIR$\" />\r\n    </option>\r\n  </component>\r\n  <component name=\"RunDashboard\">\r\n    <option name=\"configurationTypes\">\r\n      <set>\r\n        <option value=\"MavenRunConfiguration\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"RunManager\" selected=\"Application.GraduationProject\">\r\n    <configuration name=\"GraduationProject\" type=\"Application\" factoryName=\"Application\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <option name=\"MAIN_CLASS_NAME\" value=\"com.graduationproject.GraduationProject\" />\r\n      <module name=\"Backend-project\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.graduationproject.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"GraduationProject\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"Backend-project\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.graduationproject.GraduationProject\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <recent_temporary>\r\n      <list>\r\n        <item itemvalue=\"Application.GraduationProject\" />\r\n      </list>\r\n    </recent_temporary>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"jdk-21.0.1-openjdk-21.0.1-4caba194b151-23eed401\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"4e76c4c6-e973-4de6-884f-b5e880c0542b\" name=\"Changes\" comment=\"\" />\r\n      <created>1702576465330</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1702576465330</updated>\r\n      <workItem from=\"1731615469877\" duration=\"9897000\" />\r\n      <workItem from=\"1731674085654\" duration=\"24470000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1702939357124</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1702939357124</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1707510730830</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1707510730830</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1707511117226</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1707511117226</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1708300161839</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1708300161839</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1708707445728</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1708707445729</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1708707467106</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1708707467106</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1708708505588</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1708708505588</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00008\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1709063510570</created>\r\n      <option name=\"number\" value=\"00008\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00008\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1709063510571</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00009\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1709227679202</created>\r\n      <option name=\"number\" value=\"00009\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00009\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1709227679202</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00010\" summary=\"update\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1709229666941</created>\r\n      <option name=\"number\" value=\"00010\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00010\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1709229666941</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00011\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731627243935</created>\r\n      <option name=\"number\" value=\"00011\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00011\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731627243935</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00012\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731627474990</created>\r\n      <option name=\"number\" value=\"00012\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00012\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731627474990</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00013\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731679982727</created>\r\n      <option name=\"number\" value=\"00013\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00013\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731679982728</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00014\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731680297819</created>\r\n      <option name=\"number\" value=\"00014\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00014\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731680297819</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00015\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731682839215</created>\r\n      <option name=\"number\" value=\"00015\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00015\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731682839215</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00016\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731685051742</created>\r\n      <option name=\"number\" value=\"00016\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00016\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731685051742</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00017\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731685244355</created>\r\n      <option name=\"number\" value=\"00017\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00017\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731685244355</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00018\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731687458752</created>\r\n      <option name=\"number\" value=\"00018\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00018\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731687458752</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00019\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731688364940</created>\r\n      <option name=\"number\" value=\"00019\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00019\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731688364940</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00020\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731688459934</created>\r\n      <option name=\"number\" value=\"00020\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00020\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731688459934</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00021\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731689459624</created>\r\n      <option name=\"number\" value=\"00021\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00021\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731689459624</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00022\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731689869082</created>\r\n      <option name=\"number\" value=\"00022\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00022\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731689869082</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00023\" summary=\"update responses\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731691262867</created>\r\n      <option name=\"number\" value=\"00023\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00023\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731691262867</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00024\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731691543866</created>\r\n      <option name=\"number\" value=\"00024\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00024\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731691543866</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00025\" summary=\"updates\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1731691817095</created>\r\n      <option name=\"number\" value=\"00025\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00025\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1731691817095</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00026\" summary=\"add servicesImpl\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1734129789243</created>\r\n      <option name=\"number\" value=\"00026\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00026\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1734129789243</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00027\" summary=\"add Redis Configuration\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1734134056813</created>\r\n      <option name=\"number\" value=\"00027\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00027\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1734134056813</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"28\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"update\" />\r\n    <MESSAGE value=\"update responses\" />\r\n    <MESSAGE value=\"updates\" />\r\n    <MESSAGE value=\"add servicesImpl\" />\r\n    <MESSAGE value=\"add Redis Configuration\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"add Redis Configuration\" />\r\n  </component>\r\n  <component name=\"XSLT-Support.FileAssociations.UIState\">\r\n    <expand />\r\n    <select />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/.idea/workspace.xml	(date 1734462665871)
+@@ -4,12 +4,16 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="4e76c4c6-e973-4de6-884f-b5e880c0542b" name="Changes" comment="add Redis Configuration">
++    <list default="true" id="4e76c4c6-e973-4de6-884f-b5e880c0542b" name="Changes" comment="updates">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserDTO.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderCreationServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderCreationServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/OrderSearchServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/ReviewServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/resources/application.properties" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -53,6 +57,13 @@
+   </component>
+   <component name="MarkdownSettingsMigration">
+     <option name="stateVersion" value="1" />
++  </component>
++  <component name="MavenImportPreferences">
++    <option name="generalSettings">
++      <MavenGeneralSettings>
++        <option name="useMavenConfig" value="true" />
++      </MavenGeneralSettings>
++    </option>
+   </component>
+   <component name="ProblemsViewState">
+     <option name="selectedTabId" value="CurrentFile" />
+@@ -64,45 +75,41 @@
+   &quot;associatedIndex&quot;: 3
+ }</component>
+   <component name="ProjectId" id="2ZXllvNxFlYa4nBUefpwSxfgdSt" />
+-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+   <component name="ProjectViewState">
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "Application.GraduationProject.executor": "Run",
+-    "Maven..executor": "Run",
+-    "Maven.Quizapp [install].executor": "Run",
+-    "Maven.Unnamed.executor": "Run",
+-    "RequestMappingsPanelOrder0": "0",
+-    "RequestMappingsPanelOrder1": "1",
+-    "RequestMappingsPanelWidth0": "75",
+-    "RequestMappingsPanelWidth1": "75",
+-    "RunOnceActivity.OpenProjectViewOnStart": "true",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "Spring Boot.GraduationProject.executor": "Run",
+-    "git-widget-placeholder": "main",
+-    "kotlin-language-version-configured": "true",
+-    "last_opened_file_path": "D:/Workspace/Work/Wheel-n-Deal-Backend",
+-    "node.js.detected.package.eslint": "true",
+-    "node.js.detected.package.tslint": "true",
+-    "node.js.selected.package.eslint": "(autodetect)",
+-    "node.js.selected.package.tslint": "(autodetect)",
+-    "nodejs_package_manager_path": "npm",
+-    "project.structure.last.edited": "Modules",
+-    "project.structure.proportion": "0.15",
+-    "project.structure.side.proportion": "0.2",
+-    "settings.editor.selected.configurable": "reactor",
+-    "two.files.diff.last.used.folder": "C:/Users/noora/IdeaProjects/Wheel-n-Deal",
+-    "vue.rearranger.settings.migration": "true"
+-  }
+-}]]></component>
+-  <component name="ReactorSettings">
+-    <option name="notificationShown" value="true" />
+-  </component>
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
++    &quot;Application.GraduationProject.executor&quot;: &quot;Run&quot;,
++    &quot;Maven..executor&quot;: &quot;Run&quot;,
++    &quot;Maven.Quizapp [install].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.Unnamed.executor&quot;: &quot;Run&quot;,
++    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
++    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
++    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
++    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
++    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
++    &quot;Spring Boot.GraduationProject.executor&quot;: &quot;Run&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;backend__neww&quot;,
++    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
++    &quot;last_opened_file_path&quot;: &quot;D:/Workspace/Work/Wheel-n-Deal-Backend&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
++    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
++    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;IntelliLang.Configuration&quot;,
++    &quot;two.files.diff.last.used.folder&quot;: &quot;C:/Users/noora/IdeaProjects/Wheel-n-Deal&quot;,
++    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
++  }
++}</component>
+   <component name="RecentsManager">
+     <key name="CreateClassDialog.RecentsKey">
+       <recent name="com.graduationproject.entities" />
+@@ -164,7 +171,7 @@
+       </method>
+     </configuration>
+     <configuration name="GraduationProject" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+-      <module name="Backend-project" />
++      <module name="Quizapp" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.graduationproject.GraduationProject" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+@@ -394,23 +401,7 @@
+       <option name="project" value="LOCAL" />
+       <updated>1731691817095</updated>
+     </task>
+-    <task id="LOCAL-00026" summary="add servicesImpl">
+-      <option name="closed" value="true" />
+-      <created>1734129789243</created>
+-      <option name="number" value="00026" />
+-      <option name="presentableId" value="LOCAL-00026" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1734129789243</updated>
+-    </task>
+-    <task id="LOCAL-00027" summary="add Redis Configuration">
+-      <option name="closed" value="true" />
+-      <created>1734134056813</created>
+-      <option name="number" value="00027" />
+-      <option name="presentableId" value="LOCAL-00027" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1734134056813</updated>
+-    </task>
+-    <option name="localTasksCounter" value="28" />
++    <option name="localTasksCounter" value="26" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -431,12 +422,6 @@
+     <MESSAGE value="update" />
+     <MESSAGE value="update responses" />
+     <MESSAGE value="updates" />
+-    <MESSAGE value="add servicesImpl" />
+-    <MESSAGE value="add Redis Configuration" />
+-    <option name="LAST_COMMIT_MESSAGE" value="add Redis Configuration" />
+-  </component>
+-  <component name="XSLT-Support.FileAssociations.UIState">
+-    <expand />
+-    <select />
++    <option name="LAST_COMMIT_MESSAGE" value="updates" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: GraduationProject/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Configuration for server port\r\nserver.port=2000\r\n\r\n# Configuration for PostgreSQL database connection\r\nspring.datasource.url=jdbc:postgresql://localhost:5432/wheelndeel\r\nspring.datasource.username=postgres\r\nspring.datasource.password=nouran\r\nspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect\r\nspring.jpa.hibernate.ddl-auto=update\r\nspring.jpa.show-sql=true\r\nspring.jpa.properties.hibernate.format_sql=true\r\n\r\n# Configuration for Twilio API credentials and phone number\r\ntwilio.AccountSID=ACc4fe33d2912807568ab5098c46a340d9\r\ntwilio.AuthToken=b23f157994a8fec191a284b1887abce4\r\ntwilio.phoneNumber=+16513210609\r\n\r\n# Configuration for Stripe API secret and public keys\r\nstripe.api.secretKey=sk_test_51Of0HSDRpAtfI02p07kURFyWFuON9GhxXSEzZNxRpbVqLXc83KH0JcMjeURgkwf6UXsD9Xm7Z7sVf3g9tFC2Gdeo00fPYbS9G6\r\nstripe.api.publicKey=pk_live_51Of0HSDRpAtfI02pAv22ks2W7zdu4bfqewG6Gjgl4k6aQRpqiLq6pMFEHlYraiwrbCwpjlKTH8Q1ZXsov6yZR6G100MKd6xveq\r\n\r\n# Configuration for Redis\r\nspring.cache.type=redis\r\nsprring.redis.host=localhost \r\nsprring.redis.port=6379\r\nsprring.data.redis.repositories.enabled=false
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/GraduationProject/src/main/resources/application.properties b/GraduationProject/src/main/resources/application.properties
+--- a/GraduationProject/src/main/resources/application.properties	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/resources/application.properties	(date 1734230740425)
+@@ -4,7 +4,7 @@
+ # Configuration for PostgreSQL database connection
+ spring.datasource.url=jdbc:postgresql://localhost:5432/wheelndeel
+ spring.datasource.username=postgres
+-spring.datasource.password=nouran
++spring.datasource.password=hassan
+ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+ spring.jpa.hibernate.ddl-auto=update
+ spring.jpa.show-sql=true
+Index: GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject.servicesImpl;\r\n\r\nimport com.graduationproject.DTOs.TripDTO;\r\nimport com.graduationproject.entities.Trip;\r\nimport com.graduationproject.entities.User;\r\nimport com.graduationproject.repositories.TripRepository;\r\nimport com.graduationproject.repositories.UserRepository;\r\nimport com.graduationproject.services.OrderManagementService;\r\nimport com.graduationproject.services.TripManagementService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.dao.EmptyResultDataAccessException;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.Map;\r\nimport java.util.Optional;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class TripManagementServiceImpl implements TripManagementService {\r\n\r\n    private final TripRepository tripRepository;\r\n    private final UserRepository userRepository;\r\n    private final OrderManagementService orderManagementService;\r\n\r\n    @Override\r\n    public ResponseEntity<Object> postOrUpdateTrip(TripDTO tripDTO) {\r\n        if (tripDTO == null) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"Trip data cannot be null.\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        try {\r\n            if (tripDTO.getId() != null) {\r\n                Optional<Trip> optionalTrip = tripRepository.findById(tripDTO.getId());\r\n                if (optionalTrip.isPresent()) {\r\n                    Trip existingTrip = optionalTrip.get();\r\n                    updateTripFromDTO(existingTrip, tripDTO);\r\n                    tripRepository.save(existingTrip);\r\n                    return new ResponseEntity<>(\r\n                            Map.of(\"status\", HttpStatus.OK.value(), \"message\", \"Trip updated successfully\"),\r\n                            HttpStatus.OK\r\n                    );\r\n                } else {\r\n                    return new ResponseEntity<>(\r\n                            Map.of(\"status\", HttpStatus.NOT_FOUND.value(), \"message\", \"Trip not found with ID: \" + tripDTO.getId()),\r\n                            HttpStatus.NOT_FOUND\r\n                    );\r\n                }\r\n            } else {\r\n                saveNewTripFromDTO(tripDTO);\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.CREATED.value(), \"message\", \"Trip created successfully\"),\r\n                        HttpStatus.CREATED\r\n                );\r\n            }\r\n        } catch (Exception e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(), \"message\", \"An error occurred while processing the trip.\"),\r\n                    HttpStatus.INTERNAL_SERVER_ERROR\r\n            );\r\n        }\r\n    }\r\n\r\n    private Trip saveNewTripFromDTO(TripDTO tripDTO) {\r\n        Optional<User> optionalUser = userRepository.findById(tripDTO.getUserId());\r\n        if (optionalUser.isEmpty()) {\r\n            throw new RuntimeException(\"User not found with ID: \" + tripDTO.getUserId());\r\n        }\r\n        Trip trip = new Trip();\r\n        updateTripFromDTO(trip, tripDTO);\r\n        User user = optionalUser.get();\r\n        trip.setUser(user);\r\n        return tripRepository.save(trip);\r\n    }\r\n\r\n    private void updateTripFromDTO(Trip trip, TripDTO tripDTO) {\r\n        trip.setFrom(tripDTO.getFrom());\r\n        trip.setTo(tripDTO.getTo());\r\n        trip.setPaths(tripDTO.getPaths());\r\n        trip.setDay(tripDTO.getDay());\r\n        trip.setStartsAt(tripDTO.getStartsAt());\r\n        trip.setEndsAt(tripDTO.getEndsAt());\r\n        trip.setCapacity(tripDTO.getCapacity());\r\n    }\r\n\r\n    @Override\r\n    public ResponseEntity<Object> deleteTrip(Integer tripId) {\r\n        if (tripId <= 0) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 400, \"message\", \"Invalid tripId provided\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        try {\r\n            tripRepository.deleteById(tripId);\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 200, \"message\", \"Trip deleted successfully\"),\r\n                    HttpStatus.OK\r\n            );\r\n\r\n        } catch (EmptyResultDataAccessException e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 404, \"message\", \"Trip not found with ID: \" + tripId),\r\n                    HttpStatus.NOT_FOUND\r\n            );\r\n\r\n        } catch (Exception e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 500, \"message\", \"An error occurred while deleting the trip\"),\r\n                    HttpStatus.INTERNAL_SERVER_ERROR\r\n            );\r\n        }\r\n    }\r\n\r\n    @Override\r\n    public ResponseEntity<Object> cancelTrip(Integer tripId) {\r\n        if (tripId == null || tripId <= 0) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 400, \"message\", \"Invalid tripId provided\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        try {\r\n            Optional<Trip> optionalTrip = tripRepository.findById(tripId);\r\n\r\n            if (!optionalTrip.isPresent()) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", 404, \"message\", \"Trip not found with ID: \" + tripId),\r\n                        HttpStatus.NOT_FOUND\r\n                );\r\n            }\r\n\r\n            Trip trip = optionalTrip.get();\r\n            Integer commuterId = trip.getUser().getId();\r\n\r\n            if (trip.getOrders() != null) {\r\n                trip.getOrders().forEach(order -> orderManagementService.cancelOrder(order.getId(), commuterId));\r\n            }\r\n\r\n            tripRepository.deleteById(tripId);\r\n\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 200, \"message\", \"Trip canceled successfully\"),\r\n                    HttpStatus.OK\r\n            );\r\n\r\n        } catch (Exception e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", 500, \"message\", \"An error occurred while canceling the trip\"),\r\n                    HttpStatus.INTERNAL_SERVER_ERROR\r\n            );\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java
+--- a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/TripManagementServiceImpl.java	(date 1734401582793)
+@@ -3,6 +3,7 @@
+ import com.graduationproject.DTOs.TripDTO;
+ import com.graduationproject.entities.Trip;
+ import com.graduationproject.entities.User;
++import com.graduationproject.mapper.TripMapper;
+ import com.graduationproject.repositories.TripRepository;
+ import com.graduationproject.repositories.UserRepository;
+ import com.graduationproject.services.OrderManagementService;
+@@ -23,6 +24,7 @@
+     private final TripRepository tripRepository;
+     private final UserRepository userRepository;
+     private final OrderManagementService orderManagementService;
++    private final TripMapper tripMapper;
+ 
+     @Override
+     public ResponseEntity<Object> postOrUpdateTrip(TripDTO tripDTO) {
+@@ -38,7 +40,7 @@
+                 Optional<Trip> optionalTrip = tripRepository.findById(tripDTO.getId());
+                 if (optionalTrip.isPresent()) {
+                     Trip existingTrip = optionalTrip.get();
+-                    updateTripFromDTO(existingTrip, tripDTO);
++                    tripMapper.updateEntityFromDTO(tripDTO, existingTrip);
+                     tripRepository.save(existingTrip);
+                     return new ResponseEntity<>(
+                             Map.of("status", HttpStatus.OK.value(), "message", "Trip updated successfully"),
+@@ -51,7 +53,7 @@
+                     );
+                 }
+             } else {
+-                saveNewTripFromDTO(tripDTO);
++                Trip newTrip = saveNewTrip(tripDTO);
+                 return new ResponseEntity<>(
+                         Map.of("status", HttpStatus.CREATED.value(), "message", "Trip created successfully"),
+                         HttpStatus.CREATED
+@@ -65,26 +67,14 @@
+         }
+     }
+ 
+-    private Trip saveNewTripFromDTO(TripDTO tripDTO) {
++    private Trip saveNewTrip(TripDTO tripDTO) {
+         Optional<User> optionalUser = userRepository.findById(tripDTO.getUserId());
+         if (optionalUser.isEmpty()) {
+             throw new RuntimeException("User not found with ID: " + tripDTO.getUserId());
+         }
+-        Trip trip = new Trip();
+-        updateTripFromDTO(trip, tripDTO);
+-        User user = optionalUser.get();
+-        trip.setUser(user);
+-        return tripRepository.save(trip);
+-    }
+-
+-    private void updateTripFromDTO(Trip trip, TripDTO tripDTO) {
+-        trip.setFrom(tripDTO.getFrom());
+-        trip.setTo(tripDTO.getTo());
+-        trip.setPaths(tripDTO.getPaths());
+-        trip.setDay(tripDTO.getDay());
+-        trip.setStartsAt(tripDTO.getStartsAt());
+-        trip.setEndsAt(tripDTO.getEndsAt());
+-        trip.setCapacity(tripDTO.getCapacity());
++        Trip newTrip = tripMapper.mapToEntity(tripDTO);
++        newTrip.setUser(optionalUser.get());
++        return tripRepository.save(newTrip);
+     }
+ 
+     @Override
+Index: GraduationProject/src/main/java/com/graduationproject/GraduationProject.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject;\r\n\r\nimport com.graduationproject.configuration.TwilioConfiguration;\r\nimport com.graduationproject.entities.Role;\r\nimport com.graduationproject.entities.User;\r\nimport com.graduationproject.repositories.UserRepository;\r\nimport com.twilio.Twilio;\r\nimport io.swagger.v3.oas.annotations.OpenAPIDefinition;\r\nimport io.swagger.v3.oas.annotations.info.Info;\r\nimport jakarta.annotation.PostConstruct;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.boot.CommandLineRunner;\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\nimport org.springframework.boot.context.properties.EnableConfigurationProperties;\r\nimport org.springframework.cache.annotation.EnableCaching;\r\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\r\n\r\n//http://localhost:2000/swagger-ui.html\r\n\r\n@EnableCaching\r\n@SpringBootApplication\r\n@EnableConfigurationProperties\r\n@OpenAPIDefinition(info = @Info(title = \"Wheel n' Deal\", version = \"1.0\", description = \"testing level\"))\r\npublic class GraduationProject implements CommandLineRunner {\r\n\r\n\t@Autowired\r\n\tprivate UserRepository userRepository;\r\n\t@Autowired\r\n\tprivate TwilioConfiguration twilioConfig;\r\n\r\n\tpublic static void main(String[] args) {\r\n\t\tSpringApplication.run(GraduationProject.class, args);\r\n\t}\r\n\t@Override\r\n\tpublic void run(String... args) throws Exception {\r\n\t\tUser adminAccount = userRepository.findByRole(Role.ADMIN);\r\n\t\tif (adminAccount == null) {\r\n\t\t\tUser user = new User();\r\n\t\t\tuser.setUsername(\"admin#\");\r\n\t\t\tuser.setPhoneNumber(\"admin\");\r\n\t\t\tuser.setRole(Role.ADMIN);\r\n\t\t\tuser.setPassword(new BCryptPasswordEncoder().encode(\"admin\"));\r\n\t\t\tuser.setAmount((long)0);\r\n\t\t\tuserRepository.save(user);\r\n\t\t}\r\n\t}\r\n\t@PostConstruct\r\n\tpublic void setup() {\r\n\t\tTwilio.init(twilioConfig.getAccountSid(), twilioConfig.getAuthToken());\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java b/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java
+--- a/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java	(date 1734231262343)
+@@ -8,12 +8,14 @@
+ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+ import io.swagger.v3.oas.annotations.info.Info;
+ import jakarta.annotation.PostConstruct;
++import org.modelmapper.ModelMapper;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.CommandLineRunner;
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
+ import org.springframework.boot.context.properties.EnableConfigurationProperties;
+ import org.springframework.cache.annotation.EnableCaching;
++import org.springframework.context.annotation.Bean;
+ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+ 
+ //http://localhost:2000/swagger-ui.html
+@@ -29,6 +31,11 @@
+ 	@Autowired
+ 	private TwilioConfiguration twilioConfig;
+ 
++	@Bean
++	public ModelMapper modelMapper(){
++		return new ModelMapper();
++	}
++
+ 	public static void main(String[] args) {
+ 		SpringApplication.run(GraduationProject.class, args);
+ 	}
+Index: GraduationProject/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n\t\t xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n\t<modelVersion>4.0.0</modelVersion>\r\n\t<parent>\r\n\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t<artifactId>spring-boot-starter-parent</artifactId>\r\n\t\t<version>3.2.0</version>\r\n\t\t<relativePath/>\r\n\t</parent>\r\n\t<groupId>com.example</groupId>\r\n\t<artifactId>Backend-project</artifactId>\r\n\t<version>0.0.1-SNAPSHOT</version>\r\n\t<name>Wheel-N-Deal</name>\r\n\t<description>Back end for wheel-n-deal app</description>\r\n\t<properties>\r\n\t\t<java.version>17</java.version>\r\n\t</properties>\r\n\t<dependencies>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-jpa</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-web</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>mysql</groupId>\r\n\t\t\t<artifactId>mysql-connector-java</artifactId>\r\n\t\t\t<version>8.0.33</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-test</artifactId>\r\n\t\t\t<scope>test</scope>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-security</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-api</artifactId>\r\n\t\t\t<version>0.11.5</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-impl</artifactId>\r\n\t\t\t<version>0.11.5</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-jackson</artifactId>\r\n\t\t\t<version>0.11.5</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.apache.commons</groupId>\r\n\t\t\t<artifactId>commons-lang3</artifactId>\r\n\t\t\t<version>3.13.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>javax.servlet</groupId>\r\n\t\t\t<artifactId>javax.servlet-api</artifactId>\r\n\t\t\t<version>4.0.1</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.postgresql</groupId>\r\n\t\t\t<artifactId>postgresql</artifactId>\r\n\t\t\t<version>42.7.3</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.security</groupId>\r\n\t\t\t<artifactId>spring-security-crypto</artifactId>\r\n\t\t\t<version>6.2.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>jakarta.validation</groupId>\r\n\t\t\t<artifactId>jakarta.validation-api</artifactId>\r\n\t\t\t<version>2.0.2</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.twilio.sdk</groupId>\r\n\t\t\t<artifactId>twilio</artifactId>\r\n\t\t\t<version>10.1.0</version>\r\n\t\t\t<scope>compile</scope>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.stripe</groupId>\r\n\t\t\t<artifactId>stripe-java</artifactId>\r\n\t\t\t<version>24.13.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.sun.istack</groupId>\r\n\t\t\t<artifactId>istack-commons-runtime</artifactId>\r\n\t\t\t<version>4.1.2</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.testcontainers</groupId>\r\n\t\t\t<artifactId>testcontainers</artifactId>\r\n\t\t\t<version>1.19.4</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springdoc</groupId>\r\n\t\t\t<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>\r\n\t\t\t<version>2.5.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>jakarta.validation</groupId>\r\n\t\t\t<artifactId>jakarta.validation-api</artifactId>\r\n\t\t\t<version>3.0.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>javax.validation</groupId>\r\n\t\t\t<artifactId>validation-api</artifactId>\r\n\t\t\t<version>2.0.1.Final</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springdoc</groupId>\r\n\t\t\t<artifactId>springdoc-openapi-ui</artifactId>\r\n\t\t\t<version>1.7.0</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-redis</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-cache</artifactId>\r\n\t\t</dependency>\r\n\t</dependencies>\r\n\t<build>\r\n\t\t<plugins>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t\t<artifactId>spring-boot-maven-plugin</artifactId>\r\n\t\t\t\t<configuration>\r\n\t\t\t\t\t<excludes>\r\n\t\t\t\t\t\t<exclude>\r\n\t\t\t\t\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t\t\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t\t\t\t</exclude>\r\n\t\t\t\t\t</excludes>\r\n\t\t\t\t</configuration>\r\n\t\t\t</plugin>\r\n\t\t</plugins>\r\n\t</build>\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/pom.xml b/GraduationProject/pom.xml
+--- a/GraduationProject/pom.xml	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/pom.xml	(date 1734231155300)
+@@ -133,6 +133,12 @@
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-starter-cache</artifactId>
+ 		</dependency>
++		<!-- https://mvnrepository.com/artifact/org.modelmapper/modelmapper -->
++		<dependency>
++			<groupId>org.modelmapper</groupId>
++			<artifactId>modelmapper</artifactId>
++			<version>3.1.1</version>
++		</dependency>
+ 	</dependencies>
+ 	<build>
+ 		<plugins>
+Index: GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject.servicesImpl;\r\n\r\nimport com.graduationproject.DTOs.ChangePasswordDTO;\r\nimport com.graduationproject.DTOs.NormalProfileDTO;\r\nimport com.graduationproject.DTOs.UserProfileDTO;\r\nimport com.graduationproject.entities.User;\r\nimport com.graduationproject.repositories.UserRepository;\r\nimport com.graduationproject.services.UserProfileService;\r\nimport com.graduationproject.utils.Utils;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.security.core.Authentication;\r\nimport org.springframework.security.core.context.SecurityContextHolder;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.web.multipart.MultipartFile;\r\n\r\nimport java.util.Map;\r\nimport java.util.Optional;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\npublic class UserProfileServiceImpl implements UserProfileService {\r\n\r\n    private final UserRepository userRepository;\r\n    private final PasswordEncoder passwordEncoder;\r\n\r\n    public ResponseEntity<Object> updateUserProfile(UserProfileDTO userProfileDTO) {\r\n        try {\r\n            if (userProfileDTO == null) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"User profile data cannot be null.\"),\r\n                        HttpStatus.BAD_REQUEST\r\n                );\r\n            }\r\n\r\n            if (userProfileDTO.getId() == null) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"User ID is required.\"),\r\n                        HttpStatus.BAD_REQUEST\r\n                );\r\n            }\r\n\r\n            Optional<User> user = userRepository.findById(userProfileDTO.getId());\r\n            if (user.isEmpty()) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.NOT_FOUND.value(), \"message\", \"User with ID \" + userProfileDTO.getId() + \" not found.\"),\r\n                        HttpStatus.NOT_FOUND\r\n                );\r\n            }\r\n\r\n            User existingUser = user.get();\r\n\r\n            existingUser.setFullName(userProfileDTO.getFullName());\r\n            existingUser.setGender(userProfileDTO.getGender());\r\n            existingUser.setCity(userProfileDTO.getCity());\r\n            existingUser.setPhoneNumber(userProfileDTO.getPhone());\r\n            existingUser.setNationalId(userProfileDTO.getNationalId());\r\n\r\n            MultipartFile photo = userProfileDTO.getProfilePicture();\r\n            if (photo != null && !photo.isEmpty()) {\r\n                try {\r\n                    String photoUrl = Utils.storePhotoAndGetUrl(photo);\r\n                    existingUser.setProfilePictureUrl(photoUrl);\r\n                } catch (Exception e) {\r\n                    return new ResponseEntity<>(\r\n                            Map.of(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(), \"message\", \"Failed to upload profile picture.\", \"error\", e.getMessage()),\r\n                            HttpStatus.INTERNAL_SERVER_ERROR\r\n                    );\r\n                }\r\n            }\r\n\r\n            userRepository.save(existingUser);\r\n\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.OK.value(), \"message\", \"Profile updated successfully.\"),\r\n                    HttpStatus.OK\r\n            );\r\n\r\n        } catch (Exception e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(), \"message\", \"An error occurred while updating the profile.\", \"error\", e.getMessage()),\r\n                    HttpStatus.INTERNAL_SERVER_ERROR\r\n            );\r\n        }\r\n    }\r\n\r\n    private String getUsername(Integer id){\r\n        Optional<User> user= userRepository.findById(id);\r\n        return user.get().getUsername();\r\n    }\r\n\r\n    public ResponseEntity<Object> getNormalUserProfile(Integer id) {\r\n        try {\r\n            if (id == null) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"User ID must be provided.\"),\r\n                        HttpStatus.BAD_REQUEST\r\n                );\r\n            }\r\n\r\n            Optional<User> optionalUser = userRepository.findById(id);\r\n            if (optionalUser.isEmpty()) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.NOT_FOUND.value(), \"message\", \"User with ID \" + id + \" not found.\"),\r\n                        HttpStatus.NOT_FOUND\r\n                );\r\n            }\r\n\r\n            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();\r\n            if (authentication == null || !authentication.isAuthenticated()) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.UNAUTHORIZED.value(), \"message\", \"Authentication required.\"),\r\n                        HttpStatus.UNAUTHORIZED\r\n                );\r\n            }\r\n\r\n            String authenticatedUsername = authentication.getName();\r\n            String userName = optionalUser.get().getUsername();\r\n            if (!userName.equals(authenticatedUsername)) {\r\n                return new ResponseEntity<>(\r\n                        Map.of(\"status\", HttpStatus.FORBIDDEN.value(), \"message\", \"You are not authorized to view this profile.\"),\r\n                        HttpStatus.FORBIDDEN\r\n                );\r\n            }\r\n\r\n            User user = optionalUser.get();\r\n            NormalProfileDTO normalProfileDTO = new NormalProfileDTO();\r\n            normalProfileDTO.setProfilePhotoURL(user.getProfilePictureUrl());\r\n            normalProfileDTO.setFullName(user.getFullName());\r\n            normalProfileDTO.setPhoneNumber(user.getPhoneNumber());\r\n\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.OK.value(), \"message\", \"Profile retrieved successfully.\", \"data\", normalProfileDTO),\r\n                    HttpStatus.OK\r\n            );\r\n\r\n        } catch (Exception e) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value(), \"message\", \"An error occurred while retrieving the profile.\", \"error\", e.getMessage()),\r\n                    HttpStatus.INTERNAL_SERVER_ERROR\r\n            );\r\n        }\r\n    }\r\n\r\n    public ResponseEntity<Object> changePassword(ChangePasswordDTO changePasswordDTO) {\r\n        if (changePasswordDTO.getUserId() == null) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"User ID must be provided.\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        Optional<User> optionalUser = userRepository.findById(changePasswordDTO.getUserId());\r\n        if (optionalUser.isEmpty()) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.NOT_FOUND.value(), \"message\", \"User not found\"),\r\n                    HttpStatus.NOT_FOUND\r\n            );\r\n        }\r\n\r\n        User user = optionalUser.get();\r\n\r\n        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"Old password is incorrect\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())) {\r\n            return new ResponseEntity<>(\r\n                    Map.of(\"status\", HttpStatus.BAD_REQUEST.value(), \"message\", \"New password and confirm password do not match\"),\r\n                    HttpStatus.BAD_REQUEST\r\n            );\r\n        }\r\n\r\n        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));\r\n        userRepository.save(user);\r\n\r\n        return new ResponseEntity<>(\r\n                Map.of(\"status\", HttpStatus.OK.value(), \"message\", \"Password changed successfully\"),\r\n                HttpStatus.OK\r\n        );\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java
+--- a/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/servicesImpl/UserProfileServiceImpl.java	(date 1734321947382)
+@@ -4,6 +4,7 @@
+ import com.graduationproject.DTOs.NormalProfileDTO;
+ import com.graduationproject.DTOs.UserProfileDTO;
+ import com.graduationproject.entities.User;
++import com.graduationproject.mapper.UserMapper;
+ import com.graduationproject.repositories.UserRepository;
+ import com.graduationproject.services.UserProfileService;
+ import com.graduationproject.utils.Utils;
+@@ -25,6 +26,7 @@
+ 
+     private final UserRepository userRepository;
+     private final PasswordEncoder passwordEncoder;
++    private final UserMapper userMapper;
+ 
+     public ResponseEntity<Object> updateUserProfile(UserProfileDTO userProfileDTO) {
+         try {
+@@ -51,13 +53,10 @@
+             }
+ 
+             User existingUser = user.get();
++            userMapper.toEntity(userProfileDTO);
+ 
+-            existingUser.setFullName(userProfileDTO.getFullName());
+-            existingUser.setGender(userProfileDTO.getGender());
+-            existingUser.setCity(userProfileDTO.getCity());
+-            existingUser.setPhoneNumber(userProfileDTO.getPhone());
+-            existingUser.setNationalId(userProfileDTO.getNationalId());
+-
++            /* This field will not be automatically mapped due to the difference in the datatypes
++             (User entity requires String and UserProfileDTO requires MultipartFile) */
+             MultipartFile photo = userProfileDTO.getProfilePicture();
+             if (photo != null && !photo.isEmpty()) {
+                 try {
+@@ -126,10 +125,7 @@
+             }
+ 
+             User user = optionalUser.get();
+-            NormalProfileDTO normalProfileDTO = new NormalProfileDTO();
+-            normalProfileDTO.setProfilePhotoURL(user.getProfilePictureUrl());
+-            normalProfileDTO.setFullName(user.getFullName());
+-            normalProfileDTO.setPhoneNumber(user.getPhoneNumber());
++            NormalProfileDTO normalProfileDTO = userMapper.toDTO(user);
+ 
+             return new ResponseEntity<>(
+                     Map.of("status", HttpStatus.OK.value(), "message", "Profile retrieved successfully.", "data", normalProfileDTO),
+Index: GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.graduationproject.DTOs;\r\n\r\nimport com.graduationproject.entities.Gender;\r\nimport lombok.Data;\r\nimport org.springframework.web.multipart.MultipartFile;\r\n\r\n@Data\r\npublic class UserProfileDTO {\r\n    private Integer id;\r\n    private String fullName;\r\n    private Gender gender;\r\n    private String city;\r\n    private MultipartFile profilePicture;\r\n    private String phone;\r\n    private String nationalId;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java b/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java
+--- a/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java	(revision 1d8b6ed0dbf00db0eb69950e1b6f0346c4a025c2)
++++ b/GraduationProject/src/main/java/com/graduationproject/DTOs/UserProfileDTO.java	(date 1734321207657)
+@@ -11,6 +11,6 @@
+     private Gender gender;
+     private String city;
+     private MultipartFile profilePicture;
+-    private String phone;
++    private String phoneNumber;
+     private String nationalId;
+ }

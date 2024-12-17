@@ -11,6 +11,6 @@ public class UserProfileDTO {
     private Gender gender;
     private String city;
     private MultipartFile profilePicture;
-    private String phone;
+    private String phoneNumber;
     private String nationalId;
 }

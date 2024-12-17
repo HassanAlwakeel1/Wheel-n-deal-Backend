@@ -4,6 +4,7 @@ import com.graduationproject.DTOs.ChangePasswordDTO;
 import com.graduationproject.DTOs.NormalProfileDTO;
 import com.graduationproject.DTOs.UserProfileDTO;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.UserMapper;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.UserProfileService;
 import com.graduationproject.utils.Utils;
@@ -25,6 +26,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     public ResponseEntity<Object> updateUserProfile(UserProfileDTO userProfileDTO) {
         try {
@@ -51,13 +53,10 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
 
             User existingUser = user.get();
+            userMapper.toEntity(userProfileDTO);
 
-            existingUser.setFullName(userProfileDTO.getFullName());
-            existingUser.setGender(userProfileDTO.getGender());
-            existingUser.setCity(userProfileDTO.getCity());
-            existingUser.setPhoneNumber(userProfileDTO.getPhone());
-            existingUser.setNationalId(userProfileDTO.getNationalId());
-
+            /* This field will not be automatically mapped due to the difference in the datatypes
+             (User entity requires String and UserProfileDTO requires MultipartFile) */
             MultipartFile photo = userProfileDTO.getProfilePicture();
             if (photo != null && !photo.isEmpty()) {
                 try {
@@ -126,10 +125,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
 
             User user = optionalUser.get();
-            NormalProfileDTO normalProfileDTO = new NormalProfileDTO();
-            normalProfileDTO.setProfilePhotoURL(user.getProfilePictureUrl());
-            normalProfileDTO.setFullName(user.getFullName());
-            normalProfileDTO.setPhoneNumber(user.getPhoneNumber());
+            NormalProfileDTO normalProfileDTO = userMapper.toDTO(user);
 
             return new ResponseEntity<>(
                     Map.of("status", HttpStatus.OK.value(), "message", "Profile retrieved successfully.", "data", normalProfileDTO),

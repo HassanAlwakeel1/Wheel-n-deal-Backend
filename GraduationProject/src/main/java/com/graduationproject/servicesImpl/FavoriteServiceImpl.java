@@ -3,6 +3,7 @@ package com.graduationproject.servicesImpl;
 import com.graduationproject.DTOs.NormalProfileDTO;
 import com.graduationproject.entities.Favorite;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.FavoriteMapper;
 import com.graduationproject.repositories.FavoriteRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.FavoriteService;
@@ -27,6 +28,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserRepository userRepository;
     private final FavoriteRepository favoriteRepository;
     private final UserProfileService userProfileService;
+    private final FavoriteMapper favoriteMapper;
 
     /* In the fav part I make that the user and the commuter have thier own favs,
     So If the user add commuter x this commuter x will be added to the user's fav list
@@ -85,11 +87,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         List<Favorite> favoriteList = favoriteRepository.findByUser(existingUser);
 
         for (Favorite favorite : favoriteList) {
-            User favoriteUser = favorite.getFavoriteUser();
-            NormalProfileDTO normalProfileDTO = new NormalProfileDTO();
-            normalProfileDTO.setProfilePhotoURL(favoriteUser.getProfilePictureUrl());
-            normalProfileDTO.setFullName(favoriteUser.getFullName());
-            normalProfileDTO.setPhoneNumber(favoriteUser.getPhoneNumber());
+            NormalProfileDTO normalProfileDTO = favoriteMapper.toNormalProfileDTO(favorite);
             favoriteUserProfiles.add(normalProfileDTO);
         }
         return ResponseEntity.ok().body(favoriteUserProfiles);

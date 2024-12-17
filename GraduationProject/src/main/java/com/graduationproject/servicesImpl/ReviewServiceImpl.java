@@ -4,6 +4,7 @@ import com.graduationproject.DTOs.ReviewDTO;
 import com.graduationproject.entities.Review;
 import com.graduationproject.entities.Role;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.ReviewMapper;
 import com.graduationproject.repositories.ReviewRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.ReviewService;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
+    private final ReviewMapper reviewMapper;
     public ResponseEntity<?> submitOrEditReview(ReviewDTO reviewDTO) {
         if (reviewDTO == null) {
             return ResponseEntity.badRequest().body(Map.of("message", "Review data cannot be null."));
@@ -86,7 +88,7 @@ public class ReviewServiceImpl implements ReviewService {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid reviewee ID."));
         }
 
-        if (IsReviewerReviewedBefore(reviewerId, revieweeId)) {
+        if (hasReviewerAlreadyReviewed(reviewerId, revieweeId)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "You have already made a review for this commuter before."));
         }
@@ -108,7 +110,7 @@ public class ReviewServiceImpl implements ReviewService {
         submitReviewFromDTO(reviewDTO);
         return ResponseEntity.ok(Map.of("message", "Review submitted successfully."));
     }
-    private boolean IsReviewerReviewedBefore(Integer reviewerId, Integer revieweeId) {
+    private boolean hasReviewerAlreadyReviewed(Integer reviewerId, Integer revieweeId) {
         Review review = reviewRepository.findByReviewerIdAndRevieweeId(reviewerId, revieweeId);
         return review != null;
     }
@@ -149,8 +151,7 @@ public class ReviewServiceImpl implements ReviewService {
             throw new RuntimeException("User not found with ID: " + reviewDTO.getRevieweeId());
         }
 
-        Review review = new Review();
-        updateReviewFromDTO(review, reviewDTO);
+        Review review = reviewMapper.toEntity(reviewDTO);
 
         User reviewer = optioanlReviewer.get();
         User reviewee = optioanlReviewee.get();
@@ -162,7 +163,6 @@ public class ReviewServiceImpl implements ReviewService {
         } else throw new RuntimeException("Reviewee must be Commuter to submit the review");
     }
     private void updateReviewFromDTO(Review review, ReviewDTO reviewDTO) {
-        review.setRate(reviewDTO.getRate());
-        review.setComment(reviewDTO.getComment());
+        reviewMapper.updateReviewFromDTO(review,reviewDTO);
     }
 }

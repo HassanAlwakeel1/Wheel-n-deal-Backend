@@ -3,6 +3,7 @@ package com.graduationproject.servicesImpl;
 import com.graduationproject.DTOs.TripDTO;
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.TripMapper;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.OrderManagementService;
@@ -23,6 +24,7 @@ public class TripManagementServiceImpl implements TripManagementService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final OrderManagementService orderManagementService;
+    private final TripMapper tripMapper;
 
     @Override
     public ResponseEntity<Object> postOrUpdateTrip(TripDTO tripDTO) {
@@ -38,7 +40,7 @@ public class TripManagementServiceImpl implements TripManagementService {
                 Optional<Trip> optionalTrip = tripRepository.findById(tripDTO.getId());
                 if (optionalTrip.isPresent()) {
                     Trip existingTrip = optionalTrip.get();
-                    updateTripFromDTO(existingTrip, tripDTO);
+                    tripMapper.updateEntityFromDTO(tripDTO, existingTrip);
                     tripRepository.save(existingTrip);
                     return new ResponseEntity<>(
                             Map.of("status", HttpStatus.OK.value(), "message", "Trip updated successfully"),
@@ -51,7 +53,7 @@ public class TripManagementServiceImpl implements TripManagementService {
                     );
                 }
             } else {
-                saveNewTripFromDTO(tripDTO);
+                Trip newTrip = saveNewTrip(tripDTO);
                 return new ResponseEntity<>(
                         Map.of("status", HttpStatus.CREATED.value(), "message", "Trip created successfully"),
                         HttpStatus.CREATED
@@ -65,26 +67,14 @@ public class TripManagementServiceImpl implements TripManagementService {
         }
     }
 
-    private Trip saveNewTripFromDTO(TripDTO tripDTO) {
+    private Trip saveNewTrip(TripDTO tripDTO) {
         Optional<User> optionalUser = userRepository.findById(tripDTO.getUserId());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("User not found with ID: " + tripDTO.getUserId());
         }
-        Trip trip = new Trip();
-        updateTripFromDTO(trip, tripDTO);
-        User user = optionalUser.get();
-        trip.setUser(user);
-        return tripRepository.save(trip);
-    }
-
-    private void updateTripFromDTO(Trip trip, TripDTO tripDTO) {
-        trip.setFrom(tripDTO.getFrom());
-        trip.setTo(tripDTO.getTo());
-        trip.setPaths(tripDTO.getPaths());
-        trip.setDay(tripDTO.getDay());
-        trip.setStartsAt(tripDTO.getStartsAt());
-        trip.setEndsAt(tripDTO.getEndsAt());
-        trip.setCapacity(tripDTO.getCapacity());
+        Trip newTrip = tripMapper.mapToEntity(tripDTO);
+        newTrip.setUser(optionalUser.get());
+        return tripRepository.save(newTrip);
     }
 
     @Override

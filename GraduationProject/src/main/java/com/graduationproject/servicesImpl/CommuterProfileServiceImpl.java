@@ -7,6 +7,9 @@ import com.graduationproject.entities.Review;
 import com.graduationproject.entities.Role;
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.CommuterProfileMapper;
+import com.graduationproject.mapper.ReviewMapper;
+import com.graduationproject.mapper.TripMapper;
 import com.graduationproject.repositories.ReviewRepository;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
@@ -30,6 +33,9 @@ public class CommuterProfileServiceImpl implements CommuterProfileService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final TripRepository tripRepository;
+    private final TripMapper tripMapper;
+    private final ReviewMapper reviewMapper;
+    private final CommuterProfileMapper commuterProfileMapper;
 
     public ResponseEntity<Object> getFullCommuterProfile(Integer commuterId) {
         if (commuterId == null) {
@@ -56,13 +62,8 @@ public class CommuterProfileServiceImpl implements CommuterProfileService {
             );
         }
 
-        CommuterProfileDTO commuterProfileDTO = new CommuterProfileDTO();
-        commuterProfileDTO.setUsername(user.getUsername());
+        CommuterProfileDTO commuterProfileDTO = commuterProfileMapper.toDTO(user);
         commuterProfileDTO.setTotalRate(calculateCommuterTotalRate(user.getId()));
-        commuterProfileDTO.setTotalDelivers(user.getTotalDelivers());
-        commuterProfileDTO.setCancelDelivers(user.getCancelDelivers());
-        commuterProfileDTO.setPhoneNumber(user.getPhoneNumber());
-        commuterProfileDTO.setCommuterPhotoURL(user.getProfilePictureUrl());
         commuterProfileDTO.setProfileTripDetailsDTOs(profileTripDetailsDTOList(user.getId()));
         commuterProfileDTO.setProfileReviewsDTOS(profileReviewsDTOS(user.getId()));
 
@@ -78,35 +79,29 @@ public class CommuterProfileServiceImpl implements CommuterProfileService {
         Optional<User> optionalUser = userRepository.findById(commuterId);
         if(optionalUser.isPresent()){
             List<Review> receivedReviews = optionalUser.get().getReceivedReviews();
+            if (receivedReviews.isEmpty()) {
+                return 0; // Return default value if no reviews
+            }
             for (Review review : receivedReviews){
                 rateSum += (double) review.getRate();
             }
             totalRate = rateSum/receivedReviews.size();
-            return totalRate;
         }
         return totalRate;
     }
 
     private List<ProfileTripDetailsDTO> profileTripDetailsDTOList(int commuterId){
-        List<ProfileTripDetailsDTO> tirpDetailsDTOsList = new ArrayList<>();
+        List<ProfileTripDetailsDTO> tripDetailsDTOsList = new ArrayList<>();
         Optional<User> optionalUser = userRepository.findById(commuterId);
         if(optionalUser.isPresent() && optionalUser.get().getRole() == Role.COMMUTER){
             User user = optionalUser.get();
             List<Trip> trips = user.getUserTrips();
             for(Trip trip : trips){
-                ProfileTripDetailsDTO profileTripDetailsDTO = new ProfileTripDetailsDTO();
-                profileTripDetailsDTO.setFrom(trip.getFrom());
-                profileTripDetailsDTO.setTo(trip.getTo());
-                profileTripDetailsDTO.setDay(trip.getDay());
-                profileTripDetailsDTO.setStartsAt(trip.getStartsAt());
-                profileTripDetailsDTO.setEndsAt(trip.getEndsAt());
-                profileTripDetailsDTO.setCapacity(trip.getCapacity());
-                tirpDetailsDTOsList.add(profileTripDetailsDTO);
+                ProfileTripDetailsDTO profileTripDetailsDTO = tripMapper.toDTO(trip); // Use the TripMapper
+                tripDetailsDTOsList.add(profileTripDetailsDTO);
             }
-            return tirpDetailsDTOsList;
-        } else {
-            return null;
         }
+        return tripDetailsDTOsList;
     }
 
     private List<ProfileReviewsDTO> profileReviewsDTOS(int commuterId){
@@ -116,17 +111,10 @@ public class CommuterProfileServiceImpl implements CommuterProfileService {
             User user = optionalUser.get();
             List<Review> receivedReviewsList = user.getReceivedReviews();
             for(Review review : receivedReviewsList){
-                ProfileReviewsDTO profileReviewsDTO = new ProfileReviewsDTO();
-                profileReviewsDTO.setReviewerFullName(review.getReviewer().getFullName());
-                profileReviewsDTO.setReviewerProfilePhotoURL(review.getReviewer().getProfilePictureUrl());
-                profileReviewsDTO.setRate(review.getRate());
-                profileReviewsDTO.setComment(review.getComment());
+                ProfileReviewsDTO profileReviewsDTO = reviewMapper.toProfileReviewsDTO(review); // Use the ReviewMapper
                 profileReviewsDTOS.add(profileReviewsDTO);
             }
-            return profileReviewsDTOS;
-        } else {
-            return null;
         }
+        return profileReviewsDTOS;
     }
-
 }

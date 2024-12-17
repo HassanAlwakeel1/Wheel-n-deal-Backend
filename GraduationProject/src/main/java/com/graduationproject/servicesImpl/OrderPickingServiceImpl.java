@@ -1,8 +1,10 @@
 package com.graduationproject.servicesImpl;
 
+import com.graduationproject.DTOs.ApplicantDTO;
 import com.graduationproject.DTOs.ConfirmPickingUpDTO;
 import com.graduationproject.DTOs.OrderPickDTO;
 import com.graduationproject.entities.*;
+import com.graduationproject.mapper.OrderMapper;
 import com.graduationproject.repositories.OrderApplicantsRepository;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.PromoCodeRepository;
@@ -25,6 +27,7 @@ public class OrderPickingServiceImpl implements OrderPickingService {
     private final OrderApplicantsRepository orderApplicantsRepository;
     private final PromoCodeRepository promoCodeRepository;
     private final PromocodeService promocodeService;
+    private final OrderMapper orderMapper;
 
     @Override
     public ResponseEntity<?> pickOrder(OrderPickDTO orderPickDTO) {
@@ -47,11 +50,7 @@ public class OrderPickingServiceImpl implements OrderPickingService {
         }
 
         // Create a new application for the order
-        OrderApplicants orderApplicant = new OrderApplicants();
-        orderApplicant.setCommuter(commuter);
-        orderApplicant.setOrder(order);
-        orderApplicant.setApllicantPrice(orderPickDTO.getApllicantPrice());
-        orderApplicantsRepository.save(orderApplicant);
+        OrderApplicants orderApplicant = orderMapper.mapToOrderApplicants(orderPickDTO, order, commuter);
 
         return successResponse("Order picked successfully. We will inform you when the user accepts your offer.");
     }
@@ -95,15 +94,10 @@ public class OrderPickingServiceImpl implements OrderPickingService {
             return notFoundResponse("No applicants found for this order.");
         }
 
-        List<Map<String, Object>> applicantData = new ArrayList<>();
+        List<ApplicantDTO> applicantData = new ArrayList<>();
         for (OrderApplicants applicant : applicants) {
-            Map<String, Object> applicantDetails = Map.of(
-                    "commuterId", applicant.getCommuter().getId(),
-                    "commuterFullName", applicant.getCommuter().getFullName(),
-                    "price", applicant.getApllicantPrice(),
-                    "commuterPhotoURL", applicant.getCommuter().getProfilePictureUrl()
-            );
-            applicantData.add(applicantDetails);
+            ApplicantDTO applicantDTO = orderMapper.mapToApplicantDTO(applicant);
+            applicantData.add(applicantDTO);
         }
 
         return successResponse("Applicants found for the order.", applicantData);

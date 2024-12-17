@@ -3,6 +3,7 @@ package com.graduationproject.servicesImpl;
 import com.graduationproject.DTOs.SearchOrderDTO;
 import com.graduationproject.entities.Order;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.OrderMapper;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.OrderSearchService;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class OrderSearchServiceImpl implements OrderSearchService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
 
     @Override
     public ResponseEntity<Object> searchForOrder(String from, String to) {
@@ -33,33 +36,25 @@ public class OrderSearchServiceImpl implements OrderSearchService {
         }
 
         try {
-            List<SearchOrderDTO> searchOrderDTOS = new ArrayList<>();
-            List<Order> existingOrders = orderRepository.findByFromAndTo(from, to);
+            //List<SearchOrderDTO> searchOrderDTOS = new ArrayList<>();
+            List<Order> orders = orderRepository.findByFromAndTo(from, to);
 
-            if (existingOrders == null || existingOrders.isEmpty()) {
+            if (orders == null || orders.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                         Map.of("status", HttpStatus.NOT_FOUND.value(),
                                 "message", "No orders found between " + from + " and " + to + ".")
                 );
             }
 
-            for (Order order : existingOrders) {
-                SearchOrderDTO searchOrderDTO = new SearchOrderDTO();
-                ResponseEntity<Object> response = updateSearchOrderDTOFromOrder(searchOrderDTO, order);
-
-                if (response.getStatusCode() != HttpStatus.OK) {
-                    return response;
-                }
-
-                Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-                SearchOrderDTO updatedSearchOrderDTO = (SearchOrderDTO) responseBody.get("data");
-                searchOrderDTOS.add(updatedSearchOrderDTO);
-            }
+            // Map Orders to SearchOrderDTO using OrderMapper
+            List<SearchOrderDTO> searchOrderDTOs = orders.stream()
+                    .map(orderMapper::orderToSearchOrderDTO)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(
                     Map.of("status", HttpStatus.OK.value(),
                             "message", "Search results successfully retrieved.",
-                            "data", searchOrderDTOS)
+                            "data", searchOrderDTOs)
             );
 
         } catch (Exception ex) {
@@ -184,53 +179,5 @@ public class OrderSearchServiceImpl implements OrderSearchService {
                         "data", orderList
                 )
         );
-    }
-
-    // Helper Method
-    private ResponseEntity<Object> updateSearchOrderDTOFromOrder(SearchOrderDTO searchOrderDTO, Order order) {
-        if (searchOrderDTO == null || order == null) {
-            return new ResponseEntity<>(Map.of(
-                    "status", HttpStatus.BAD_REQUEST.value(),
-                    "message", "SearchOrderDTO or Order is null."
-            ), HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            if (order.getUser() == null || order.getUser().getId() == null) {
-                return new ResponseEntity<>(Map.of(
-                        "status", HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                        "message", "User information is missing in Order."
-                ), HttpStatus.UNPROCESSABLE_ENTITY);
-            }
-
-            searchOrderDTO.setId(order.getId());
-            searchOrderDTO.setOrderName(order.getOrderName());
-            searchOrderDTO.setUserId(order.getUser().getId());
-            searchOrderDTO.setCountOfOrders(order.getCountOfOrders());
-            searchOrderDTO.setWeight(order.getWeight());
-            searchOrderDTO.setBreakable(order.isBreakable());
-            searchOrderDTO.setExpiryDate(order.getExpiryDate());
-            searchOrderDTO.setExpectedPrice(order.getExpectedPrice());
-            searchOrderDTO.setOrderPhotoURL(order.getOrderPhotoUrl());
-            searchOrderDTO.setFrom(order.getFrom());
-            searchOrderDTO.setTo(order.getTo());
-            searchOrderDTO.setSenderName(order.getSenderName());
-            searchOrderDTO.setSenderPhoneNumber(order.getSenderPhoneNumber());
-            searchOrderDTO.setReceiverName(order.getReceiverName());
-            searchOrderDTO.setReceiverPhoneNumber(order.getReceiverPhoneNumber());
-
-            return new ResponseEntity<>(Map.of(
-                    "status", HttpStatus.OK.value(),
-                    "message", "SearchOrderDTO updated successfully.",
-                    "data", searchOrderDTO
-            ), HttpStatus.OK);
-
-        } catch (Exception ex) {
-            return new ResponseEntity<>(Map.of(
-                    "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "message", "An error occurred while updating SearchOrderDTO.",
-                    "data", ex.getMessage()
-            ), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 }

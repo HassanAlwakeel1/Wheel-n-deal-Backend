@@ -5,6 +5,7 @@ import com.graduationproject.entities.Order;
 import com.graduationproject.entities.OrderStatus;
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.OrderMapper;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
@@ -26,6 +27,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final TripRepository tripRepository;
+    private final OrderMapper orderMapper;
 
     @Transactional
     @Override
@@ -86,8 +88,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
         }
 
         // Create a new order if the user exists
-        Order order = new Order();
-        updateOrderFromDTO(order, orderDTO);
+        Order order = orderMapper.mapToOrder(orderDTO);
 
         User user = optionalUser.get();
         order.setUser(user);
@@ -126,19 +127,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
                 ), HttpStatus.BAD_REQUEST);
             }
 
-            order.setOrderName(orderDTO.getOrderName());
-            order.setCountOfOrders(orderDTO.getCountOfOrders());
-            order.setWeight(orderDTO.getWeight());
-            order.setBreakable(orderDTO.isBreakable());
-            order.setExpiryDate(orderDTO.getExpiryDate());
-            order.setExpectedPrice(orderDTO.getExpectedPrice());
-            order.setOrderPhotoUrl(Utils.storePhotoAndGetUrl(orderDTO.getOrderPhoto()));
-            order.setFrom(orderDTO.getFrom());
-            order.setTo(orderDTO.getTo());
-            order.setSenderName(orderDTO.getSenderName());
-            order.setSenderPhoneNumber(orderDTO.getSenderPhoneNumber());
-            order.setReceiverName(orderDTO.getReceiverName());
-            order.setReceiverPhoneNumber(orderDTO.getReceiverPhoneNumber());
+            orderMapper.mapToOrder(orderDTO);
 
             return new ResponseEntity<>(Map.of(
                     "status", HttpStatus.OK.value(),
@@ -175,8 +164,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
             ), HttpStatus.NOT_FOUND);
         }
 
-        Order order = new Order();
-        updateOrderFromDTO(order, orderDTO);
+        Order order = orderMapper.mapToOrder(orderDTO);
 
         User user = optionalUser.get();
         order.setUser(user);
