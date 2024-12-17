@@ -1,10 +1,14 @@
 package com.graduationproject.controllers;
 
+import com.graduationproject.DTOs.UserDTO;
 import com.graduationproject.entities.Role;
 import com.graduationproject.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,7 +19,19 @@ public class AdminController {
 
     @GetMapping("users")
     public ResponseEntity<?> findUsersByRole(@RequestParam Role role) {
-        return userService.findUsersByRole(role);
+        if (role == null) {
+            return ResponseEntity.badRequest().body("Role cannot be null.");
+        }
+        try {
+            List<UserDTO> users = userService.findUsersByRole(role);
+            if (users.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users found with the specified role.");
+            }
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while retrieving users.");
+        }
     }
 
     @GetMapping("users/count")

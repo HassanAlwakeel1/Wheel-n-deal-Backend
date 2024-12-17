@@ -6,6 +6,7 @@ import com.graduationproject.entities.User;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,20 +53,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public ResponseEntity<?> findUsersByRole(Role role) {
+    @Cacheable(value = "usersByRole", key = "#role")
+    public List<UserDTO> findUsersByRole(Role role) {
         if (role == null) {
-            return ResponseEntity.badRequest().body("Role cannot be null.");
+            throw new IllegalArgumentException("Role cannot be null.");
         }
-        try {
-            List<UserDTO> users = userRepository.findUsersByRole(role);
-            if (users.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users found with the specified role.");
-            }
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while retrieving users.");
-        }
+        return userRepository.findUsersByRole(role);
     }
 
     public ResponseEntity<?> countUsersByRole(Role role) {
