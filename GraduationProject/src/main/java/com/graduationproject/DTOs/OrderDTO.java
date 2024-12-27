@@ -20,7 +20,7 @@ public class OrderDTO {
     private String senderPhoneNumber;
     private String receiverName;
     private String receiverPhoneNumber;
-
+    private String details;
 
     //TODO : deal with dates and the price with the length of the way
 }

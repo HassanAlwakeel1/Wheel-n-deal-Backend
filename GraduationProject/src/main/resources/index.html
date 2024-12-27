@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Notifications</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<script>
+    var socket = new SockJS('http://localhost:2000/ws'); // Adjust the URL as needed
+    var stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+        stompClient.subscribe('/topic/notifications', function (notification) {
+            alert('Notification: ' + notification.body); // Display the welcome message
+        });
+    });
+
+    function sendNotification() {
+        stompClient.send("/app/notify", {}, "Hello, this is a notification!");
+    }
+</script>
+</body>
+</html>
