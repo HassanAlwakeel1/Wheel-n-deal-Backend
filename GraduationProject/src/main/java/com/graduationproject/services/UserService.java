@@ -13,5 +13,5 @@ public interface UserService {
         UserDetailsService userDetailsService();
         ResponseEntity<String> deleteById(Integer id, String phoneNumber);
         List<UserDTO> findUsersByRole(Role role);
-        ResponseEntity<?> countUsersByRole(Role role);
+        ResponseEntity<Object> countUsersByRole(Role role);
 }

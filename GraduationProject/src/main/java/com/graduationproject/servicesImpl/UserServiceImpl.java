@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUsersByRole(role);
     }
 
-    public ResponseEntity<?> countUsersByRole(Role role) {
+    public ResponseEntity<Object> countUsersByRole(Role role) {
         if (role == null) {
             return ResponseEntity.badRequest().body("Role parameter cannot be null.");
         }
@@ -76,4 +76,5 @@ public class UserServiceImpl implements UserService {
                     .body("An error occurred while counting users.");
         }
     }
+
 }

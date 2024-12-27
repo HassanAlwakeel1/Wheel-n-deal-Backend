@@ -21,24 +21,23 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("users")
-    public ResponseEntity<?> findUsersByRole(@RequestParam Role role) {
+    public ResponseEntity<List<UserDTO>> findUsersByRole(@RequestParam Role role) {
         if (role == null) {
-            return ResponseEntity.badRequest().body("Role cannot be null.");
+            return ResponseEntity.badRequest().body(null);
         }
         try {
             List<UserDTO> users = userService.findUsersByRole(role);
             if (users.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users found with the specified role.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.ok(users);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while retrieving users.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("users/count")
-    public ResponseEntity<?> countUsersByRole(@RequestParam Role role) {
+    public ResponseEntity<Object> countUsersByRole(@RequestParam Role role) {
         return userService.countUsersByRole(role);
     }
 
