@@ -4,15 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e76c4c6-e973-4de6-884f-b5e880c0542b" name="Changes" comment="modify the generic type in Admin methods">
-      <change afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/configuration/WebSocketConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GraduationProject/src/main/resources/index.html" afterDir="false" />
+    <list default="true" id="4e76c4c6-e973-4de6-884f-b5e880c0542b" name="Changes" comment="repalce model mapper with mapstruct in 2 classes">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/f6d15228-5e4e-4899-b3a5-3ae7d1cbe53d.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/f6d15228-5e4e-4899-b3a5-3ae7d1cbe53d.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GraduationProject/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/DTOs/OrderDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/configuration/SecurityConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/controllers/AuthenticationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/controllers/AuthenticationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/controllers/OrderCreationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/controllers/OrderCreationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/GraduationProject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/entities/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/CommuterProfileMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/CommuterProfileMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/FavoriteMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/FavoriteMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/impl/CommuterProfileMapperImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraduationProject/src/main/java/com/graduationproject/mapper/impl/FavoriteMapperImpl.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,8 +78,10 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Application.GraduationProject.executor": "Run",
+    "Application.GraduationProject.executor": "Debug",
     "Maven..executor": "Run",
+    "Maven.Backend-project [clean].executor": "Run",
+    "Maven.Backend-project [install].executor": "Run",
     "Maven.Quizapp [install].executor": "Run",
     "Maven.Unnamed.executor": "Run",
     "RequestMappingsPanelOrder0": "0",
@@ -99,7 +104,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "reference.settings.ide.settings.web.browsers",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "two.files.diff.last.used.folder": "C:/Users/noora/IdeaProjects/Wheel-n-Deal",
     "vue.rearranger.settings.migration": "true"
   }
@@ -199,6 +204,7 @@
       <workItem from="1731674085654" duration="24470000" />
       <workItem from="1735134767007" duration="42000" />
       <workItem from="1735308800933" duration="19260000" />
+      <workItem from="1735402001501" duration="6310000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <option name="closed" value="true" />
@@ -457,7 +463,9 @@
     <MESSAGE value="add Redis Configuration" />
     <MESSAGE value="Update" />
     <MESSAGE value="modify the generic type in Admin methods" />
-    <option name="LAST_COMMIT_MESSAGE" value="modify the generic type in Admin methods" />
+    <MESSAGE value="repace model mapper with mapstruct in 2 classes" />
+    <MESSAGE value="repalce model mapper with mapstruct in 2 classes" />
+    <option name="LAST_COMMIT_MESSAGE" value="repalce model mapper with mapstruct in 2 classes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

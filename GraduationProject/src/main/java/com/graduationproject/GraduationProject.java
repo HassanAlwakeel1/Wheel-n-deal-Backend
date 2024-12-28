@@ -21,7 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //http://localhost:2000/swagger-ui.html
 
 @EnableCaching
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.graduationproject")
 @EnableConfigurationProperties
 @OpenAPIDefinition(info = @Info(title = "Wheel n' Deal", version = "1.0", description = "testing level"))
 public class GraduationProject implements CommandLineRunner {
