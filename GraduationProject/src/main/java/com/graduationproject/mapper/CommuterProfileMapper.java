@@ -6,6 +6,5 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface CommuterProfileMapper {
-
-    CommuterProfileDTO toDTO(User user); // Maps User entity to CommuterProfileDTO
+    CommuterProfileDTO toDTO(User user);
 }
