@@ -9,6 +9,7 @@ import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.SmsService;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,14 +24,12 @@ import java.util.Random;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SmsServiceImpl implements SmsService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TwilioConfiguration twilioConfig;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    final private UserRepository userRepository;
+    final private TwilioConfiguration twilioConfig;
+    final private PasswordEncoder passwordEncoder;
 
     public ResponseEntity<Object> forgetPassword(String phoneNumber, String newPassword) {
         if (phoneNumber != null) {

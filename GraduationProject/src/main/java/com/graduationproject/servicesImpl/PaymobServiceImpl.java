@@ -9,9 +9,11 @@ import com.graduationproject.DTOs.paymobPaymentDTOs.ThirdRequest;
 import com.graduationproject.DTOs.paymobPaymentDTOs.WalletRequest;
 import com.graduationproject.entities.PaymobResponse;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.PaymopResponseMapper;
 import com.graduationproject.repositories.PaymobResponseRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.PaymobService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class PaymobServiceImpl implements PaymobService {
-    @Autowired
-    private PaymobResponseRepository paymobResponseRepository;
-    @Autowired
-    private UserRepository userRepository;
+    private final PaymopResponseMapper paymopResponseMapper;
+    final private PaymobResponseRepository paymobResponseRepository;
+    final private UserRepository userRepository;
 
     public String getAuthToken(String apiKey) throws JsonProcessingException {
         // API endpoint for obtaining authentication token
@@ -96,12 +98,7 @@ public class PaymobServiceImpl implements PaymobService {
         }
     }
     public void savePayResponse(PayResponseDTO payResponse) {
-        PaymobResponse responseEntity = new PaymobResponse();
-        responseEntity.setExternalId(payResponse.getId());
-        responseEntity.setPending(payResponse.getPending());
-        responseEntity.setAmountCents(Math.toIntExact(payResponse.getAmount_cents()));
-        responseEntity.setCurrency(payResponse.getCurrency());
-
+        PaymobResponse responseEntity = paymopResponseMapper.toEntity(payResponse);
         paymobResponseRepository.save(responseEntity);
     }
     public ResponseEntity<?> sendPaymentRequest(WalletRequest walletRequest) {

@@ -8,6 +8,7 @@ import com.graduationproject.DTOs.stripePaymentDTOs.CreateStripeUserRequestDTO;
 import com.graduationproject.entities.Token;
 import com.graduationproject.entities.TokenType;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.UserMapper;
 import com.graduationproject.repositories.TokenRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.AuthenticationService;
@@ -40,6 +41,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
+    private final UserMapper userMapper;
     @Autowired
     @Qualifier("JWTServiceImpl")
     private JWTService jwtService;
@@ -86,23 +88,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .body("Phone number already exists.");
         }
         try {
+
             CreateStripeUserRequestDTO request = new CreateStripeUserRequestDTO();
             request.setPhoneNumber(signUpRequest.getPhone());
             request.setUserName(signUpRequest.getUsername());
-            String stripeId = createStripeUser(request);
+            String stripeId = createStripeUser (request);
 
-            User user = new User();
-            user.setPhoneNumber(signUpRequest.getPhone());
-            user.setUsername(signUpRequest.getUsername());
-            user.setRole(signUpRequest.getRole());
+            User user = userMapper.signUpRequestToEntity(signUpRequest);
             user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
             user.setStripeId(stripeId);
             user.setAmount(0L);
 
-            var savedUser = userRepository.save(user);
+            var savedUser  = userRepository.save(user);
             var jwtToken = jwtService.generateToken(user);
             var jwtRefreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
-            saveUserToken(savedUser, jwtToken);
+            saveUserToken(savedUser , jwtToken);
 
             Map<String, String> responseData = new HashMap<>();
             responseData.put("stripeId", stripeId);

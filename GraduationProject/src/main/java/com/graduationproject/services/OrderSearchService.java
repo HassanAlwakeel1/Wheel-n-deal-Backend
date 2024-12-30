@@ -8,5 +8,4 @@ public interface OrderSearchService {
     ResponseEntity<Object> findNotActiveOrders(Integer userId);
     ResponseEntity<?> findById(Integer orderId);
     ResponseEntity<?> findCommuterOrders(Integer commuterId);
-
 }

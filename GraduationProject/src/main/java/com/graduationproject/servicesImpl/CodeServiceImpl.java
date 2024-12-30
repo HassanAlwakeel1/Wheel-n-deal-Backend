@@ -20,6 +20,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CodeServiceImpl implements CodeService {
+
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
 

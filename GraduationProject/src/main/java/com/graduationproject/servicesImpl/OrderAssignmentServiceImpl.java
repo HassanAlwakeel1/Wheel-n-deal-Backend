@@ -17,6 +17,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class OrderAssignmentServiceImpl implements OrderAssignmentService {
+
     private final OrderRepository orderRepository;
     private final TripRepository tripRepository;
     @Override

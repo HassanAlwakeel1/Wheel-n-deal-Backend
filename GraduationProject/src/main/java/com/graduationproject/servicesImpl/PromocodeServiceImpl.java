@@ -21,9 +21,7 @@ import java.util.Random;
 public class PromocodeServiceImpl implements PromocodeService {
 
     private final OrderRepository orderRepository;
-
     private final UserRepository userRepository;
-
     private final PromoCodeRepository promoCodeRepository;
     //here I used orderId not userId to get the discount amount
     //based on the order price

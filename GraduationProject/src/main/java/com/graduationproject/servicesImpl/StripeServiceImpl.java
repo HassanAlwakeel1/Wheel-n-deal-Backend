@@ -3,6 +3,7 @@ package com.graduationproject.servicesImpl;
 import com.graduationproject.DTOs.stripePaymentDTOs.ChargeUserDTO;
 import com.graduationproject.entities.StripePaymentEntity;
 import com.graduationproject.entities.User;
+import com.graduationproject.mapper.StripePaymentMapper;
 import com.graduationproject.repositories.StripePaymentRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.StripeService;
@@ -10,6 +11,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.PaymentIntentCreateParams;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -21,14 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class StripeServiceImpl implements StripeService {
 
-    @Autowired
-    private StripePaymentRepository paymentRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private Environment env;
+    final private StripePaymentRepository paymentRepository;
+    final private StripePaymentMapper stripePaymentMapper;
+    final private UserRepository userRepository;
+    final private Environment env;
 
     public ResponseEntity<Object> chargeUser(ChargeUserDTO chargeUserDTO) {
         if (chargeUserDTO == null) {
@@ -87,10 +88,8 @@ public class StripeServiceImpl implements StripeService {
             customer.setAmount(newAmount);
             userRepository.save(customer);
 
-            StripePaymentEntity payment = new StripePaymentEntity();
-            payment.setAmount(chargeUserDTO.getAmount());
+            StripePaymentEntity payment = stripePaymentMapper.toEntity(chargeUserDTO);
             payment.setTimestamp(LocalDateTime.now());
-            payment.setStripeUserId(chargeUserDTO.getStripeUserId());
             paymentRepository.save(payment);
 
             return new ResponseEntity<>(
