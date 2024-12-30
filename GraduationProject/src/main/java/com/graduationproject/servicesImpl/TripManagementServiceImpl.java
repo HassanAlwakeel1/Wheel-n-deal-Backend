@@ -40,7 +40,7 @@ public class TripManagementServiceImpl implements TripManagementService {
                 Optional<Trip> optionalTrip = tripRepository.findById(tripDTO.getId());
                 if (optionalTrip.isPresent()) {
                     Trip existingTrip = optionalTrip.get();
-                    tripMapper.updateEntityFromDTO(tripDTO, existingTrip);
+                    tripMapper.updateEntityFromDTO(existingTrip, tripDTO);
                     tripRepository.save(existingTrip);
                     return new ResponseEntity<>(
                             Map.of("status", HttpStatus.OK.value(), "message", "Trip updated successfully"),
@@ -130,7 +130,7 @@ public class TripManagementServiceImpl implements TripManagementService {
             Integer commuterId = trip.getUser().getId();
 
             if (trip.getOrders() != null) {
-                trip.getOrders().forEach(order -> orderManagementService.cancelOrder(order.getId(), commuterId));
+                trip.getOrders().forEach(order -> orderManagementService.cancelOrder(order.getOrderId(), commuterId));
             }
 
             tripRepository.deleteById(tripId);

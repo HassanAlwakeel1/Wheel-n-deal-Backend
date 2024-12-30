@@ -7,7 +7,10 @@ import com.graduationproject.DTOs.SearchOrderDTO;
 import com.graduationproject.entities.Order;
 import com.graduationproject.entities.OrderApplicants;
 import com.graduationproject.entities.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface OrderMapper {
     SearchOrderDTO orderToSearchOrderDTO(Order order);
     Order searchOrderDTOToOrder(SearchOrderDTO searchOrderDTO);

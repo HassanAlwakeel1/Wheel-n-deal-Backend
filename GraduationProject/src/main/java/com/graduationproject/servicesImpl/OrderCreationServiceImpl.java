@@ -99,7 +99,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
         return new ResponseEntity<>(Map.of(
                 "status", HttpStatus.CREATED.value(),
                 "message", "Order created successfully",
-                "orderId", savedOrder.getId()
+                "orderId", savedOrder.getOrderId()
         ), HttpStatus.CREATED);
     }
 

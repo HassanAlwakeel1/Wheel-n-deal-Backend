@@ -8,14 +8,12 @@ import com.twilio.Twilio;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.annotation.PostConstruct;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 //http://localhost:2000/swagger-ui.html
@@ -30,11 +28,6 @@ public class GraduationProject implements CommandLineRunner {
 	private UserRepository userRepository;
 	@Autowired
 	private TwilioConfiguration twilioConfig;
-
-	@Bean
-	public ModelMapper modelMapper(){
-		return new ModelMapper();
-	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(GraduationProject.class, args);

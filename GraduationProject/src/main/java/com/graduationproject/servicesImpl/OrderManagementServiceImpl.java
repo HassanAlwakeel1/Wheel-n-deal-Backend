@@ -140,7 +140,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
             admin.setAmount(admin.getAmount() + (orderPrice * 2));
         } else if (cancellerRole == Role.COMMUTER) {
             commuterAmount -= (orderPrice * 10 / 100);
-            promocodeService.generatePromoCode(order.getId());
+            promocodeService.generatePromoCode(order.getOrderId());
         }
     }
 
