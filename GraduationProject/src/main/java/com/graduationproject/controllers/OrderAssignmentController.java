@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderAssignmentController {
     private final OrderAssignmentService orderAssignmentService;
 
-    @PostMapping("/existing/{orderId}/{tripId}")
+    @PostMapping("existing/{orderId}/{tripId}")
     public ResponseEntity<?> assignExistingOrder(@PathVariable Integer orderId, @PathVariable Integer tripId) {
         return orderAssignmentService.assignExistingOrder(orderId, tripId);
     }

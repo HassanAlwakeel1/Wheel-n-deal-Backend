@@ -10,7 +10,6 @@ import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.TripRepository;
 import com.graduationproject.repositories.UserRepository;
 import com.graduationproject.services.OrderCreationService;
-import com.graduationproject.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

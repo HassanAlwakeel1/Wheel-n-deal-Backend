@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderSearchController {
     private final OrderSearchService orderSearchService;
 
-    @GetMapping("/{from}/{to}")
+    @GetMapping("{from}/{to}")
     public ResponseEntity<Object> searchOrder(@PathVariable String from, @PathVariable String to) {
         return orderSearchService.searchForOrder(from, to);
     }
