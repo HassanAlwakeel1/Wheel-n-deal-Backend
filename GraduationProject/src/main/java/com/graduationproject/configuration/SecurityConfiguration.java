@@ -1,6 +1,6 @@
 package com.graduationproject.configuration;
 
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import com.graduationproject.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

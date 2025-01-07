@@ -1,7 +1,7 @@
 package com.graduationproject.services;
 
 import com.graduationproject.DTOs.UserDTO;
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Repository;

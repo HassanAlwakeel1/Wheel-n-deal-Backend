@@ -13,7 +13,6 @@ public class UserController {
 
     private final UserProfileService userProfileService;
     private final UserService userService;
-    private final TripSearchService tripSearchService;
     private final CommuterProfileService commuterProfileService;
 
     @PutMapping("update")

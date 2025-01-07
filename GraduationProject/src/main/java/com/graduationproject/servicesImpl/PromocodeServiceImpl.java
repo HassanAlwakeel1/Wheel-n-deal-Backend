@@ -2,7 +2,7 @@ package com.graduationproject.servicesImpl;
 
 import com.graduationproject.entities.Order;
 import com.graduationproject.entities.PromoCode;
-import com.graduationproject.entities.PromocodeStatus;
+import com.graduationproject.enums.PromocodeStatus;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.PromoCodeRepository;

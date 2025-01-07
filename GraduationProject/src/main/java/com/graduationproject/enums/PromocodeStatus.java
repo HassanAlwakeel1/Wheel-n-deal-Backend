@@ -1,4 +1,4 @@
-package com.graduationproject.entities;
+package com.graduationproject.enums;
 
 public enum PromocodeStatus {
     ACTIVE,NON_ACTIVE

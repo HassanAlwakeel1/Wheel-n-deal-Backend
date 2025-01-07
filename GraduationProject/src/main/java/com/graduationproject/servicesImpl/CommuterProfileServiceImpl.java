@@ -4,7 +4,7 @@ import com.graduationproject.DTOs.CommuterProfileDTO;
 import com.graduationproject.DTOs.ProfileReviewsDTO;
 import com.graduationproject.DTOs.ProfileTripDetailsDTO;
 import com.graduationproject.entities.Review;
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
 import com.graduationproject.mapper.CommuterProfileMapper;

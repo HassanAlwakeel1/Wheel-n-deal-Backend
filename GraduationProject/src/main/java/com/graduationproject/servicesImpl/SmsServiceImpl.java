@@ -1,7 +1,7 @@
 package com.graduationproject.servicesImpl;
 
 import com.graduationproject.DTOs.optDTOs.OtpResponseDTO;
-import com.graduationproject.DTOs.optDTOs.OtpStatus;
+import com.graduationproject.enums.OtpStatus;
 import com.graduationproject.DTOs.optDTOs.OtpValidationRequest;
 import com.graduationproject.configuration.TwilioConfiguration;
 import com.graduationproject.entities.User;

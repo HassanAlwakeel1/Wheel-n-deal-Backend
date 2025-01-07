@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graduationproject.DTOs.*;
 import com.graduationproject.DTOs.stripePaymentDTOs.CreateStripeUserRequestDTO;
 import com.graduationproject.entities.Token;
-import com.graduationproject.entities.TokenType;
+import com.graduationproject.enums.TokenType;
 import com.graduationproject.entities.User;
 import com.graduationproject.mapper.UserMapper;
 import com.graduationproject.repositories.TokenRepository;

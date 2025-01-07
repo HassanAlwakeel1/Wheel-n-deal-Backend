@@ -1,7 +1,7 @@
 package com.graduationproject;
 
 import com.graduationproject.configuration.TwilioConfiguration;
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.UserRepository;
 import com.twilio.Twilio;

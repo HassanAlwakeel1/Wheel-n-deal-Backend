@@ -1,7 +1,7 @@
 package com.graduationproject.servicesImpl;
 
 import com.graduationproject.entities.Order;
-import com.graduationproject.entities.OrderStatus;
+import com.graduationproject.enums.OrderStatus;
 import com.graduationproject.entities.User;
 import com.graduationproject.repositories.OrderRepository;
 import com.graduationproject.repositories.UserRepository;

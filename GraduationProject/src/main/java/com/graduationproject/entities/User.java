@@ -1,6 +1,8 @@
 package com.graduationproject.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.graduationproject.enums.Gender;
+import com.graduationproject.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -72,6 +74,7 @@ public class User implements UserDetails {
     @Min(value = 0, message = "Minimum value for Cancel Delivers is 0")
     @Column(name = "cancel_delivers")
     private Integer cancelDelivers;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     private Role role;

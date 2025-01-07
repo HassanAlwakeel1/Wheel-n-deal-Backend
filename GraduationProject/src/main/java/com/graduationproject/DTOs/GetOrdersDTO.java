@@ -1,6 +1,6 @@
 package com.graduationproject.DTOs;
 
-import com.graduationproject.entities.OrderStatus;
+import com.graduationproject.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

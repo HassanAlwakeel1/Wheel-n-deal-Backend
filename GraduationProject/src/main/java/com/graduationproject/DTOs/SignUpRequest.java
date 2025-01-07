@@ -1,6 +1,6 @@
 package com.graduationproject.DTOs;
 
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import lombok.Data;
 
 @Data

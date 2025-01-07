@@ -1,5 +1,6 @@
 package com.graduationproject.entities;
 
+import com.graduationproject.enums.TokenType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

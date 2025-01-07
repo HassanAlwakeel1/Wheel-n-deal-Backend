@@ -17,11 +17,11 @@ import lombok.NoArgsConstructor;
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Min(value = 1, message = "Rating must be at least 1")
     @Max(value = 5, message = "Rating must be at most 5")
-    private int rate;
+    private Integer rate;
 
     @NotBlank
     @Size(max = 255, message = "Comment length must be at most 255 characters")

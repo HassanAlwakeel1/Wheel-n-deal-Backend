@@ -1,6 +1,6 @@
 package com.graduationproject.DTOs;
 
-import com.graduationproject.entities.PaymentMethod;
+import com.graduationproject.enums.PaymentMethod;
 import lombok.Data;
 
 @Data

@@ -2,7 +2,7 @@ package com.graduationproject.servicesImpl;
 
 import com.graduationproject.DTOs.OrderDTO;
 import com.graduationproject.entities.Order;
-import com.graduationproject.entities.OrderStatus;
+import com.graduationproject.enums.OrderStatus;
 import com.graduationproject.entities.Trip;
 import com.graduationproject.entities.User;
 import com.graduationproject.mapper.OrderMapper;

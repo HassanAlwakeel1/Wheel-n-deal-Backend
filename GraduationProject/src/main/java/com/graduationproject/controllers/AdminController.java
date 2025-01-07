@@ -1,7 +1,7 @@
 package com.graduationproject.controllers;
 
 import com.graduationproject.DTOs.UserDTO;
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import com.graduationproject.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

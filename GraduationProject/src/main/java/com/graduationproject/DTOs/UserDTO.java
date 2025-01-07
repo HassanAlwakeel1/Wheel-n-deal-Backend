@@ -1,6 +1,6 @@
 package com.graduationproject.DTOs;
 
-import com.graduationproject.entities.*;
+import com.graduationproject.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

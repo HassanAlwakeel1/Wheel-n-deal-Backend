@@ -1,4 +1,4 @@
-package com.graduationproject.DTOs.optDTOs;
+package com.graduationproject.enums;
 
 public enum OtpStatus {
     DELIVERED,

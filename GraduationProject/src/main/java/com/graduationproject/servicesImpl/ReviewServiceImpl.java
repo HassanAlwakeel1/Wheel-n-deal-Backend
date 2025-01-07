@@ -2,7 +2,7 @@ package com.graduationproject.servicesImpl;
 
 import com.graduationproject.DTOs.ReviewDTO;
 import com.graduationproject.entities.Review;
-import com.graduationproject.entities.Role;
+import com.graduationproject.enums.Role;
 import com.graduationproject.entities.User;
 import com.graduationproject.mapper.ReviewMapper;
 import com.graduationproject.repositories.ReviewRepository;

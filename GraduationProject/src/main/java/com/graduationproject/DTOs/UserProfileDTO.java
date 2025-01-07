@@ -1,6 +1,6 @@
 package com.graduationproject.DTOs;
 
-import com.graduationproject.entities.Gender;
+import com.graduationproject.enums.Gender;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
